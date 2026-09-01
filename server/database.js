@@ -328,6 +328,8 @@ async function listInvoices(search = null, status = null, trashOnly = false) {
           const haystack = [
             d.invoice_no || "",
             d.ref_no || "",
+            d.sb_no || "",
+            d.shipper_invoice_no || "",
             d.awb_no || "",
             d.shipper_name || "",
             d.consignee_name || "",

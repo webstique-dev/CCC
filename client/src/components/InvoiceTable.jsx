@@ -469,6 +469,11 @@ export function InvoiceTable({
                               GST: {d.shipper_gst}
                             </span>
                           )}
+                          {d.shipper_invoice_no && (
+                            <span className="text-[10px] font-mono text-slate-600 block mt-0.5">
+                              Shipper Inv: {d.shipper_invoice_no}
+                            </span>
+                          )}
                         </div>
 
                         <div className="pt-2 border-t border-slate-100">
@@ -504,6 +509,14 @@ export function InvoiceTable({
                           <span className="text-[10px] text-slate-400 block font-medium">Chargeable Wt (C.WT)</span>
                           <span className="font-semibold font-mono text-brand-700">{d.c_wt ? `${d.c_wt} kg` : '-'}</span>
                         </div>
+                        {d.sb_no && (
+                          <div className="col-span-2 pt-1 border-t border-slate-100 flex items-center justify-between">
+                            <span className="text-[10px] text-slate-400 font-medium">SB No</span>
+                            <span className="font-mono font-semibold text-brand-700 text-xs">
+                              {d.sb_no} {d.sb_date ? `(${d.sb_date})` : ''}
+                            </span>
+                          </div>
+                        )}
                         {d.ref_no && (
                           <div className="col-span-2 pt-1 border-t border-slate-100">
                             <span className="text-[10px] text-slate-400 block font-medium">Ref No</span>

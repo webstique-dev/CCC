@@ -301,6 +301,7 @@ async function generateInvoicePdf(data, outputPath) {
       data.shipper_name || "-",
       data.shipper_address || "",
       data.shipper_gst ? `GST: ${data.shipper_gst}` : "",
+      data.shipper_invoice_no ? `Shipper Inv: ${data.shipper_invoice_no}` : "",
     ]
       .filter(Boolean)
       .join("\n");
@@ -332,9 +333,9 @@ async function generateInvoicePdf(data, outputPath) {
     doc.text("BILL DETAILS", left, curY + 4, { width: width, align: "center" });
     curY += billHeaderHeight;
 
-    const rowH = 15;
-    const billRowsCount = 6;
-    const billBoxH = billRowsCount * rowH; // 90 pt
+    const rowH = 14.5;
+    const billRowsCount = 7;
+    const billBoxH = billRowsCount * rowH; // 101.5 pt
     drawBox(left, curY, width, billBoxH);
 
     const xLeftLabelW = 96;
@@ -347,9 +348,16 @@ async function generateInvoicePdf(data, outputPath) {
       doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(left, y).lineTo(left + width, y).stroke().restore();
     }
 
+    // Vertical line after left label (all 7 rows)
     doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(left + xLeftLabelW, curY).lineTo(left + xLeftLabelW, curY + billBoxH).stroke().restore();
+
+    // Mid divider (rows 1-5 and row 7, leaving row 6 Remarks full width)
     doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(xMidDivider, curY).lineTo(xMidDivider, curY + 5 * rowH).stroke().restore();
+    doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(xMidDivider, curY + 6 * rowH).lineTo(xMidDivider, curY + 7 * rowH).stroke().restore();
+
+    // Right label divider (rows 1-5 and row 7)
     doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(xRightValX, curY).lineTo(xRightValX, curY + 5 * rowH).stroke().restore();
+    doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(xRightValX, curY + 6 * rowH).lineTo(xRightValX, curY + 7 * rowH).stroke().restore();
 
     const xAwbDateDivider = left + xLeftLabelW + 116;
     doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(xAwbDateDivider, curY + 2 * rowH).lineTo(xAwbDateDivider, curY + 3 * rowH).stroke().restore();
@@ -357,80 +365,95 @@ async function generateInvoicePdf(data, outputPath) {
     const invDateStr = formatToDDMMYYYY(data.inv_date);
     const awbDateStr = formatToDDMMYYYY(data.awb_date);
 
-    // Row 1
+    // Row 1: INVOICE NO / PKGS
     let y = curY;
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("INVOICE NO:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.text("INVOICE NO:", left + 6, y + 3.5, { width: xLeftLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(data.invoice_no || "", left + xLeftLabelW + 6, y + 3.8, { width: xMidDivider - (left + xLeftLabelW) - 10 });
+    doc.text(data.invoice_no || "", left + xLeftLabelW + 6, y + 3.5, { width: xMidDivider - (left + xLeftLabelW) - 10 });
 
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("PKGS", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.text("PKGS", xMidDivider + 6, y + 3.5, { width: xRightLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(data.pkgs || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
+    doc.text(data.pkgs || "", xRightValX + 6, y + 3.5, { width: width - (xRightValX - left) - 10 });
 
-    // Row 2
+    // Row 2: REF.NO / GR WT
     y = curY + rowH;
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("REF.NO:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
-    doc.font("Helvetica").fontSize(7.2).fillColor("#000000");
-    doc.text(data.ref_no || "", left + xLeftLabelW + 6, y + 3.8, { width: xMidDivider - (left + xLeftLabelW) - 10 });
+    doc.text("REF.NO:", left + 6, y + 3.5, { width: xLeftLabelW - 8 });
+    doc.font("Helvetica").fontSize(7).fillColor("#000000");
+    doc.text(data.ref_no || "", left + xLeftLabelW + 6, y + 3.5, { width: xMidDivider - (left + xLeftLabelW) - 10 });
 
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("GR WT", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.text("GR WT", xMidDivider + 6, y + 3.5, { width: xRightLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(data.gr_wt || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
+    doc.text(data.gr_wt || "", xRightValX + 6, y + 3.5, { width: width - (xRightValX - left) - 10 });
 
-    // Row 3
+    // Row 3: INV DATE / AWB DATE / C.WT
     y = curY + 2 * rowH;
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("INV DATE:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.text("INV DATE:", left + 6, y + 3.5, { width: xLeftLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(invDateStr, left + xLeftLabelW + 6, y + 3.8, { width: 108 });
+    doc.text(invDateStr, left + xLeftLabelW + 6, y + 3.5, { width: 108 });
 
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("AWB DATE", xAwbDateDivider + 6, y + 3.8, { width: 56 });
+    doc.text("AWB DATE", xAwbDateDivider + 6, y + 3.5, { width: 56 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(awbDateStr, xAwbDateDivider + 62, y + 3.8, { width: xMidDivider - (xAwbDateDivider + 62) - 6 });
+    doc.text(awbDateStr, xAwbDateDivider + 62, y + 3.5, { width: xMidDivider - (xAwbDateDivider + 62) - 6 });
 
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("C.WT", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.text("C.WT", xMidDivider + 6, y + 3.5, { width: xRightLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(data.c_wt || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
+    doc.text(data.c_wt || "", xRightValX + 6, y + 3.5, { width: width - (xRightValX - left) - 10 });
 
-    // Row 4
+    // Row 4: AWB NO / FROM
     y = curY + 3 * rowH;
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("AWB NO:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.text("AWB NO:", left + 6, y + 3.5, { width: xLeftLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(data.awb_no || "", left + xLeftLabelW + 6, y + 3.8, { width: xMidDivider - (left + xLeftLabelW) - 10 });
+    doc.text(data.awb_no || "", left + xLeftLabelW + 6, y + 3.5, { width: xMidDivider - (left + xLeftLabelW) - 10 });
 
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("FROM", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.text("FROM", xMidDivider + 6, y + 3.5, { width: xRightLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(data.origin || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
+    doc.text(data.origin || "", xRightValX + 6, y + 3.5, { width: width - (xRightValX - left) - 10 });
 
-    // Row 5
+    // Row 5: COMMODITY / TO
     y = curY + 4 * rowH;
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("COMMODITY:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.text("COMMODITY:", left + 6, y + 3.5, { width: xLeftLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(data.commodity || "", left + xLeftLabelW + 6, y + 3.8, { width: xMidDivider - (left + xLeftLabelW) - 10 });
+    doc.text(data.commodity || "", left + xLeftLabelW + 6, y + 3.5, { width: xMidDivider - (left + xLeftLabelW) - 10 });
 
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("TO", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.text("TO", xMidDivider + 6, y + 3.5, { width: xRightLabelW - 8 });
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
-    doc.text(data.destination || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
+    doc.text(data.destination || "", xRightValX + 6, y + 3.5, { width: width - (xRightValX - left) - 10 });
 
     // Row 6: REMARKS
     y = curY + 5 * rowH;
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
-    doc.text("REMARKS:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.text("REMARKS:", left + 6, y + 3.5, { width: xLeftLabelW - 8 });
     doc.font("Helvetica").fontSize(7).fillColor("#000000");
-    doc.text(data.remarks || "", left + xLeftLabelW + 6, y + 3.8, {
+    doc.text(data.remarks || "", left + xLeftLabelW + 6, y + 3.5, {
       width: width - xLeftLabelW - 12,
       height: rowH - 4,
     });
+
+    // Row 7: SHIPPER INVOICE NO / SB NO (Directly below Remarks)
+    y = curY + 6 * rowH;
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("SHIPPER INV NO:", left + 6, y + 3.5, { width: xLeftLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.shipper_invoice_no || "", left + xLeftLabelW + 6, y + 3.5, { width: xMidDivider - (left + xLeftLabelW) - 10 });
+
+    const sbDisplay = data.sb_no
+      ? `${data.sb_no}${data.sb_date ? ` (${formatToDDMMYYYY(data.sb_date)})` : ""}`
+      : "";
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("SB NO:", xMidDivider + 6, y + 3.5, { width: xRightLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(sbDisplay, xRightValX + 6, y + 3.5, { width: width - (xRightValX - left) - 10 });
 
     curY += billBoxH;
 

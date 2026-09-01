@@ -111,6 +111,9 @@ export function InvoiceEditorModal({
 
       setFormData({
         invoice_no: invoice.data.invoice_no || '',
+        shipper_invoice_no: invoice.data.shipper_invoice_no || '',
+        sb_no: invoice.data.sb_no || '',
+        sb_date: normalizeDate(invoice.data.sb_date),
         ref_no: invoice.data.ref_no || '',
         inv_date: normalizeDate(invoice.data.inv_date),
         awb_date: normalizeDate(invoice.data.awb_date),
@@ -358,9 +361,9 @@ export function InvoiceEditorModal({
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
             Shipper Details
           </h3>
-          {renderField({ label: 'Shipper Name', fieldKey: 'shipper_name', required: true })}
-          {renderField({ label: 'Shipper Address', fieldKey: 'shipper_address' })}
-          {renderField({ label: 'Shipper GSTIN', fieldKey: 'shipper_gst' })}
+          {renderField({ label: 'Shipper Name', fieldKey: 'shipper_name', required: true, placeholder: 'e.g. ABC EXPORTS PVT LTD' })}
+          {renderField({ label: 'Shipper Address', fieldKey: 'shipper_address', placeholder: 'Street, Area, City, Pincode' })}
+          {renderField({ label: 'Shipper GSTIN', fieldKey: 'shipper_gst', placeholder: 'e.g. 33AAAAA0000A1Z5' })}
         </div>
 
         {/* Consignee Box */}
@@ -368,8 +371,8 @@ export function InvoiceEditorModal({
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
             Consignee Details
           </h3>
-          {renderField({ label: 'Consignee Name', fieldKey: 'consignee_name', required: true })}
-          {renderField({ label: 'Consignee Address', fieldKey: 'consignee_address' })}
+          {renderField({ label: 'Consignee Name', fieldKey: 'consignee_name', required: true, placeholder: 'e.g. GLOBAL LOGISTICS LLC' })}
+          {renderField({ label: 'Consignee Address', fieldKey: 'consignee_address', placeholder: 'PO Box, City, Country' })}
         </div>
       </div>
 
@@ -379,27 +382,21 @@ export function InvoiceEditorModal({
           Bill Details
         </h3>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {/* Auto-assigned Invoice No (Locked) */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+          {/* Row 1: Invoice No, Invoice Date, Ref No */}
           <div className="space-y-1">
-            <div className="flex items-center justify-between">
-              <label className="block text-xs font-semibold text-slate-700">
-                Invoice No
-              </label>
-              <span className="text-[10px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200/80">
-                Auto-Assigned
-              </span>
-            </div>
+            <label className="block text-xs font-semibold text-slate-700">
+              Invoice No <span className="text-brand-600 font-medium text-[10px]">(Auto-Assigned)</span>
+            </label>
             <input
               type="text"
               readOnly
               value={formData.invoice_no || 'Generating...'}
               title="Invoice number is automatically assigned based on financial year and sequence"
-              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl font-mono font-bold bg-slate-100/90 text-slate-800 border border-slate-300 cursor-not-allowed select-all focus:outline-none"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl font-mono font-bold bg-slate-100/90 text-slate-800 border border-slate-300 cursor-not-allowed focus:outline-none"
             />
           </div>
-          {renderField({ label: 'Ref No', fieldKey: 'ref_no', placeholder: 'e.g. REF-001' })}
-          
+
           <DatePicker
             label="Invoice Date"
             value={formData.inv_date}
@@ -408,8 +405,23 @@ export function InvoiceEditorModal({
             error={errors.inv_date}
           />
 
+          {renderField({ label: 'Ref No', fieldKey: 'ref_no', placeholder: 'e.g. REF-001' })}
+
+          {/* Row 2: Shipper Invoice No, SB No, SB Date */}
+          {renderField({ label: 'Shipper Invoice No', fieldKey: 'shipper_invoice_no', placeholder: 'e.g. EXP-INV-101' })}
+
+          {renderField({ label: 'SB No (Shipping Bill)', fieldKey: 'sb_no', placeholder: 'e.g. 1234567' })}
+
+          <DatePicker
+            label="SB Date"
+            value={formData.sb_date}
+            onChange={(val) => handleFieldChange('sb_date', val)}
+            error={errors.sb_date}
+          />
+
+          {/* Row 3: AWB No, AWB Date, Commodity */}
           {renderField({ label: 'AWB No', fieldKey: 'awb_no', required: true, placeholder: 'e.g. 123-45678901' })}
-          
+
           <DatePicker
             label="AWB Date"
             value={formData.awb_date}
@@ -417,12 +429,14 @@ export function InvoiceEditorModal({
             error={errors.awb_date}
           />
 
-          {renderField({ label: 'Packages (PKGS)', fieldKey: 'pkgs', placeholder: 'e.g. 10' })}
-
-          {renderField({ label: 'Gross Weight (GR.WT)', fieldKey: 'gr_wt', placeholder: 'e.g. 250.00' })}
-          {renderField({ label: 'Chargeable Weight (C.WT)', fieldKey: 'c_wt', required: true, placeholder: 'e.g. 275.00' })}
           {renderField({ label: 'Commodity', fieldKey: 'commodity', placeholder: 'e.g. ELECTRONICS' })}
 
+          {/* Row 4: Packages, Gross Weight, Chargeable Weight */}
+          {renderField({ label: 'Packages (PKGS)', fieldKey: 'pkgs', placeholder: 'e.g. 10' })}
+          {renderField({ label: 'Gross Weight (GR.WT)', fieldKey: 'gr_wt', placeholder: 'e.g. 250.00' })}
+          {renderField({ label: 'Chargeable Weight (C.WT)', fieldKey: 'c_wt', required: true, placeholder: 'e.g. 275.00' })}
+
+          {/* Row 5: Origin, Destination, Remarks */}
           {renderField({ label: 'Origin Airport (FROM)', fieldKey: 'origin', placeholder: 'e.g. MAA' })}
           {renderField({ label: 'Destination Airport (TO)', fieldKey: 'destination', placeholder: 'e.g. DXB' })}
           {renderField({ label: 'Remarks', fieldKey: 'remarks', placeholder: 'Special instructions...' })}
