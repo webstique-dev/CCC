@@ -1,8 +1,12 @@
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 
-const SECRET_KEY = process.env.SECRET_KEY || "change-this-secret-in-production-9f8e7d6c5b4a";
-const TOKEN_TTL_SECONDS = 60 * 60 * 8; // 8 hour session
+const SECRET_KEY =
+  process.env.JWT_SECRET ||
+  process.env.SECRET_KEY ||
+  "cargo-invoice-secret-key-change-in-production-9f8e7d6c5b4a";
+
+const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7; // 7 days session
 
 function hashPassword(plain) {
   return bcrypt.hashSync(plain, 10);
@@ -10,6 +14,7 @@ function hashPassword(plain) {
 
 function verifyPassword(plain, hashed) {
   try {
+    if (!plain || !hashed) return false;
     return bcrypt.compareSync(plain, hashed);
   } catch (err) {
     return false;
@@ -17,8 +22,9 @@ function verifyPassword(plain, hashed) {
 }
 
 function createToken(username) {
+  const sub = typeof username === "object" && username !== null ? username.sub || username.username : username;
   const payload = {
-    sub: username,
+    sub: String(sub),
     iat: Math.floor(Date.now() / 1000),
     exp: Math.floor(Date.now() / 1000) + TOKEN_TTL_SECONDS,
   };
@@ -60,6 +66,7 @@ module.exports = {
   hashPassword,
   verifyPassword,
   createToken,
+  createAccessToken: createToken,
   decodeToken,
   authMiddleware,
 };
