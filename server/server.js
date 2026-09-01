@@ -391,23 +391,36 @@ app.get("/api/invoices/:id/pdf", auth.authMiddleware, async (req, res) => {
   try {
     const inv = await db.getInvoice(req.params.id, false);
     if (!inv) {
-      return res.status(404).json({ detail: "Invoice not found or is in trash." });
-    }
-    if (!inv.generated_pdf_path || !fs.existsSync(inv.generated_pdf_path)) {
-      return res
-        .status(404)
-        .json({ detail: "No generated PDF found for this invoice yet." });
+      return res.status(404).json({ detail: "Invoice not found or has been moved to trash." });
     }
 
-    const safeInvoiceNo = (inv.data?.invoice_no || String(inv.id)).replace(/\//g, "-");
+    let filePath = inv.generated_pdf_path;
+    if (!filePath || !fs.existsSync(filePath)) {
+      // Auto-generate on-demand so PDF preview never fails on fresh/restarted instances
+      const uniqueSuffix = crypto.randomBytes(4).toString("hex");
+      const outputName = `invoice_${inv.id}_${uniqueSuffix}.pdf`;
+      filePath = path.join(GENERATED_DIR, outputName);
+      await pdfTemplate.generateInvoicePdf(inv.data || {}, filePath);
+      await db.updateInvoice(inv.id, {
+        status: inv.status === "Draft" ? "Draft" : "Completed",
+        generatedPdfPath: filePath,
+      });
+    }
+
+    const safeInvoiceNo = (inv.data?.invoice_no || String(inv.id)).replace(/[\/\\]/g, "-");
     const filename = `${safeInvoiceNo}.pdf`;
+    const stat = fs.statSync(filePath);
 
     res.setHeader("Content-Type", "application/pdf");
+    res.setHeader("Content-Length", stat.size);
     res.setHeader("Content-Disposition", `inline; filename="${filename}"`);
-    const stream = fs.createReadStream(inv.generated_pdf_path);
+    res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+
+    const stream = fs.createReadStream(filePath);
     stream.pipe(res);
   } catch (err) {
-    return res.status(500).json({ detail: "Failed to stream PDF." });
+    console.error("PDF streaming error:", err);
+    return res.status(500).json({ detail: `Failed to stream PDF: ${err.message || err}` });
   }
 });
 

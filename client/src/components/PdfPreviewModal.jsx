@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Download, Printer, FileText } from 'lucide-react';
+import { Download, Printer, FileText, AlertCircle, RefreshCw } from 'lucide-react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { Spinner } from './ui/Spinner';
@@ -10,38 +10,51 @@ import { useToast } from '../context/ToastContext';
 export function PdfPreviewModal({ isOpen, onClose, invoice }) {
   const [pdfUrl, setPdfUrl] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   const toast = useToast();
 
-  useEffect(() => {
-    let activeBlobUrl = null;
-
-    async function loadPdf() {
-      if (!invoice || !isOpen) {
-        setPdfUrl(null);
-        return;
-      }
-
-      setLoading(true);
-      try {
-        const blob = await api.getPdfBlob(invoice.id);
-        const url = URL.createObjectURL(blob);
-        activeBlobUrl = url;
-        setPdfUrl(url);
-      } catch (err) {
-        toast.error('Failed to load generated PDF document.');
-      } finally {
-        setLoading(false);
-      }
+  const loadPdf = async () => {
+    if (!invoice || !isOpen) {
+      setPdfUrl(null);
+      return;
     }
 
-    loadPdf();
+    setLoading(true);
+    setLoadError(null);
+    try {
+      const blob = await api.getPdfBlob(invoice.id);
+      const url = URL.createObjectURL(blob);
+      setPdfUrl((prevUrl) => {
+        if (prevUrl) URL.revokeObjectURL(prevUrl);
+        return url;
+      });
+    } catch (err) {
+      const msg = err.message || 'Failed to load generated PDF document.';
+      setLoadError(msg);
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isOpen && invoice) {
+      loadPdf();
+    } else {
+      setPdfUrl((prevUrl) => {
+        if (prevUrl) URL.revokeObjectURL(prevUrl);
+        return null;
+      });
+      setLoadError(null);
+    }
 
     return () => {
-      if (activeBlobUrl) {
-        URL.revokeObjectURL(activeBlobUrl);
-      }
+      setPdfUrl((prevUrl) => {
+        if (prevUrl) URL.revokeObjectURL(prevUrl);
+        return null;
+      });
     };
-  }, [invoice, isOpen]);
+  }, [invoice?.id, isOpen]);
 
   if (!invoice) return null;
 
@@ -49,7 +62,7 @@ export function PdfPreviewModal({ isOpen, onClose, invoice }) {
     if (!pdfUrl) return;
     const a = document.createElement('a');
     a.href = pdfUrl;
-    const cleanNo = (invoice.data?.invoice_no || `invoice_${invoice.id}`).replace(/\//g, '-');
+    const cleanNo = (invoice.data?.invoice_no || `invoice_${invoice.id}`).replace(/[\/\\]/g, '-');
     a.download = `${cleanNo}.pdf`;
     document.body.appendChild(a);
     a.click();
@@ -97,11 +110,28 @@ export function PdfPreviewModal({ isOpen, onClose, invoice }) {
         </div>
       }
     >
-      <div className="w-full flex-1 h-full min-h-[560px] flex flex-col items-center justify-center rounded-xl overflow-hidden border border-slate-200 no-scrollbar">
+      <div className="w-full flex-1 h-full min-h-[560px] flex flex-col items-center justify-center rounded-xl overflow-hidden border border-slate-200 no-scrollbar bg-slate-50/50">
         {loading ? (
           <div className="flex flex-col items-center gap-3 p-8 text-slate-500">
             <Spinner size="lg" className="text-brand-600" />
-            <span className="text-sm font-medium">Loading PDF document...</span>
+            <span className="text-sm font-medium">Rendering tax invoice...</span>
+          </div>
+        ) : loadError ? (
+          <div className="p-8 max-w-md text-center flex flex-col items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
+              <AlertCircle className="w-6 h-6" />
+            </div>
+            <h4 className="text-sm font-bold text-slate-900">Failed to load generated PDF</h4>
+            <p className="text-xs text-slate-500 leading-relaxed">{loadError}</p>
+            <Button
+              variant="outline"
+              size="sm"
+              icon={RefreshCw}
+              onClick={loadPdf}
+              className="mt-2"
+            >
+              Retry Loading PDF
+            </Button>
           </div>
         ) : pdfUrl ? (
           <PdfCanvasViewer pdfBlobUrl={pdfUrl} />

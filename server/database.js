@@ -58,24 +58,17 @@ async function initDb(seedUser = true) {
     }
 
     if (seedUser) {
-      const defaultUsers = [
-        { username: "admin", full_name: "Administrator", pass: "admin123" },
-        { username: "operator", full_name: "Invoice Operator", pass: "operator123" },
-        { username: "accounts", full_name: "Accounts Manager", pass: "accounts123" },
-        { username: "operations", full_name: "Logistics Lead", pass: "operations123" },
-      ];
-
-      for (const u of defaultUsers) {
-        const existing = await User.findOne({ username: u.username });
-        if (!existing) {
-          await User.create({
-            username: u.username,
-            full_name: u.full_name,
-            password_hash: auth.hashPassword(u.pass),
-            created_at: Date.now() / 1000,
-          });
-          console.log(`[MongoDB] Seeded default ${u.username} user.`);
-        }
+      const adminUsername = process.env.ADMIN_USERNAME || "admin";
+      const adminPassword = process.env.ADMIN_PASSWORD || "admin123";
+      const existingAdmin = await User.findOne({ username: adminUsername });
+      if (!existingAdmin) {
+        await User.create({
+          username: adminUsername,
+          full_name: "Administrator",
+          password_hash: auth.hashPassword(adminPassword),
+          created_at: Date.now() / 1000,
+        });
+        console.log(`[MongoDB] Initialized secure admin user (${adminUsername}).`);
       }
     }
   } catch (err) {

@@ -51,10 +51,10 @@ export function Navbar({ onOpenUpload }) {
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col text-right">
                 <span className="text-xs font-semibold text-slate-200">
-                  {user?.full_name || user?.username || 'User'}
+                  {user?.full_name || user?.username || 'Administrator'}
                 </span>
                 <span className="text-[10px] text-slate-400 capitalize">
-                  {user?.username === 'admin' ? 'Administrator' : 'Operator'}
+                  Administrator
                 </span>
               </div>
 

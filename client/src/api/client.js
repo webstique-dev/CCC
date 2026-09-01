@@ -115,8 +115,30 @@ export const api = {
     }),
 
   getPdfBlob: async (id) => {
-    const res = await request(`/invoices/${id}/pdf`);
-    return await res.blob();
+    const token = localStorage.getItem('cargo_token');
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const res = await fetch(`${API_BASE}/invoices/${id}/pdf`, {
+      method: 'GET',
+      headers,
+    });
+
+    if (!res.ok) {
+      let errorMsg = `Failed to load PDF document (HTTP ${res.status})`;
+      try {
+        const errJson = await res.json();
+        errorMsg = errJson.detail?.message || errJson.detail || errorMsg;
+      } catch (e) {
+        // Not a JSON error
+      }
+      throw new Error(errorMsg);
+    }
+
+    const blob = await res.blob();
+    return new Blob([blob], { type: 'application/pdf' });
   },
 
   getPdfUrl: (id) => `${API_BASE}/invoices/${id}/pdf`,
