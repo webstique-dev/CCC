@@ -436,14 +436,14 @@ async function generateInvoicePdf(data, outputPath) {
 
     // ================= 6. CHARGES DETAILS SECTION =================
     const cols = [
-      { name1: "CHARGES DETAILS", name2: "", w: 156.28, align: "left" },
-      { name1: "FREIGHT", name2: "RATE", w: 45, align: "center" },
-      { name1: "HSN", name2: "CODE", w: 45, align: "center" },
-      { name1: "TAXABLE", name2: "AMOUNT", w: 66, align: "right" },
+      { name1: "CHARGES DETAILS", name2: "", w: 168.28, align: "left" },
+      { name1: "FREIGHT", name2: "RATE", w: 41, align: "center" },
+      { name1: "HSN", name2: "CODE", w: 41, align: "center" },
+      { name1: "TAXABLE", name2: "AMOUNT", w: 65, align: "right" },
       { name1: "IGST", name2: "18%", w: 56, align: "right" },
       { name1: "CGST", name2: "9%", w: 56, align: "right" },
       { name1: "SGST", name2: "9%", w: 56, align: "right" },
-      { name1: "NON TAXABLE", name2: "AMOUNT", w: 67, align: "right" },
+      { name1: "NON TAXABLE", name2: "AMOUNT", w: 64, align: "right" },
     ];
 
     const topHdrH = 13;
@@ -454,14 +454,14 @@ async function generateInvoicePdf(data, outputPath) {
     drawBox(left, curY, width, totalHdrH);
 
     // Horizontal divider between Top Header & Sub Header
-    const taxColsStartX = left + 156.28 + 45 + 45;
+    const taxColsStartX = left + 168.28 + 41 + 41;
     doc.save().lineWidth(0.4).strokeColor("#9ca3af").moveTo(taxColsStartX, curY + topHdrH).lineTo(left + width, curY + topHdrH).stroke().restore();
 
     // Top Header Titles
-    const taxGroupW = 66 + 56 + 56 + 56;
+    const taxGroupW = 65 + 56 + 56 + 56;
     doc.font("Helvetica-Bold").fontSize(7).fillColor("#111827");
     doc.text("TAXABLE AMOUNT", taxColsStartX, curY + 3.2, { width: taxGroupW, align: "center" });
-    doc.text("GST", taxColsStartX + taxGroupW, curY + 3.2, { width: 67, align: "center" });
+    doc.text("GST", taxColsStartX + taxGroupW, curY + 3.2, { width: 64, align: "center" });
 
     // Vertical column lines in header
     let cxHdr = left;
@@ -525,9 +525,22 @@ async function generateInvoicePdf(data, outputPath) {
       ];
 
       cols.forEach((col, i) => {
-        doc.font("Helvetica").fontSize(7).fillColor("#111827");
-        const cellPadX = col.align === "left" ? 6 : 4;
-        doc.text(rowVals[i].val, cx + cellPadX, y + 3.8, { width: col.w - cellPadX * 2, align: rowVals[i].align });
+        let fSize = 6.8;
+        const cellPadX = col.align === "left" ? 5 : 3;
+        const maxTextW = col.w - cellPadX * 2;
+
+        if (i === 0) {
+          while (fSize > 5.0 && doc.font("Helvetica").fontSize(fSize).widthOfString(rowVals[i].val) > maxTextW) {
+            fSize -= 0.2;
+          }
+        }
+
+        doc.font("Helvetica").fontSize(fSize).fillColor("#111827");
+        doc.text(rowVals[i].val, cx + cellPadX, y + 4.2, {
+          width: maxTextW,
+          align: rowVals[i].align,
+          lineBreak: false,
+        });
         cx += col.w;
       });
     });
@@ -553,13 +566,13 @@ async function generateInvoicePdf(data, outputPath) {
     doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
     doc.text("SUB TOTAL", left + 140, curY + 4.5, { width: 100, align: "right" });
 
-    let cxSub = left + 156.28 + 45 + 45;
+    let cxSub = left + 168.28 + 41 + 41;
     const subCols = [
-      { val: formatNum(subTaxable), w: 66 },
+      { val: formatNum(subTaxable), w: 65 },
       { val: formatNum(subIgst), w: 56 },
       { val: formatNum(subCgst), w: 56 },
       { val: formatNum(subSgst), w: 56 },
-      { val: formatNum(subNonTax, true), w: 67 },
+      { val: formatNum(subNonTax, true), w: 64 },
     ];
 
     subCols.forEach((sc) => {
@@ -603,7 +616,6 @@ async function generateInvoicePdf(data, outputPath) {
 
     // Bank Details Header
     const bankHdrH = 16;
-    drawFilledBox(left, curY, bankW, bankHdrH, "#f2ede4");
     doc.save().lineWidth(0.5).strokeColor("#000000").moveTo(left, curY + bankHdrH).lineTo(left + bankW, curY + bankHdrH).stroke().restore();
 
     doc.font("Helvetica-Bold").fontSize(7.8).fillColor("#000000");
