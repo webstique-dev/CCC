@@ -78,8 +78,7 @@ const BANK_LINES = [
 ];
 
 const NOTES = [
-  "1. All Cheques / Demand Drafts in payment of bills should be drawn in favour of",
-  "CHOLAMANDAL CARGO CONNECTIONS on Chennai Banks only and should be crossed A/c. Payee only.",
+  "1. All Cheques / Demand Drafts in payment of bills should be drawn in favour of CHOLAMANDAL CARGO CONNECTIONS on Chennai Banks only and should be crossed A/c. Payee only.",
   "2. No receipt is valid unless on the company's printed receipt signed and stamped.",
   "3. Subject to chennai jurisdiction",
   "4. Interested at 24% per annum will be charged if the amount is not paid within 15days.",
@@ -178,9 +177,10 @@ async function generateInvoicePdf(data, outputPath) {
   });
 
   return new Promise((resolve, reject) => {
+    const PAGE_MARGIN = 24;
     const doc = new PDFDocument({
-      size: "A4",
-      margins: { top: 18, bottom: 16, left: 26, right: 26 },
+      size: [595.28, 841.89], // Exact A4 Portrait: 210 mm × 297 mm
+      margins: { top: PAGE_MARGIN, bottom: PAGE_MARGIN, left: PAGE_MARGIN, right: PAGE_MARGIN },
       autoFirstPage: true,
     });
 
@@ -191,9 +191,9 @@ async function generateInvoicePdf(data, outputPath) {
     writeStream.on("error", reject);
     doc.on("error", reject);
 
-    const left = 26;
-    const top = 18;
-    const width = 543; // A4 595.28 - 52 margins
+    const left = PAGE_MARGIN;
+    const top = PAGE_MARGIN;
+    const width = 595.28 - PAGE_MARGIN * 2; // 547.28 pt
     let curY = top;
 
     const drawBox = (x, y, w, h, strokeColor = "#000000", lineWidth = 0.75) => {
@@ -209,92 +209,94 @@ async function generateInvoicePdf(data, outputPath) {
     };
 
     // ================= 1. HEADER =================
-    const headerHeight = 62;
+    const headerHeight = 84;
     drawBox(left, curY, width, headerHeight);
 
-    // Left: CCC Logo
-    const logoBoxWidth = 76;
+    // Left: CCC Logo Box
+    const logoBoxWidth = 84;
     drawBox(left, curY, logoBoxWidth, headerHeight);
     if (cccLogoBuffer) {
       try {
-        doc.image(cccLogoBuffer, left + 4, curY + 4, {
-          fit: [logoBoxWidth - 8, headerHeight - 8],
+        doc.image(cccLogoBuffer, left + 6, curY + 6, {
+          fit: [logoBoxWidth - 12, headerHeight - 12],
           align: "center",
           valign: "center",
         });
       } catch (err) {
         doc.font("Helvetica-Bold").fontSize(18).fillColor("#1e3a8a");
-        doc.text("CCC", left, curY + 22, { width: logoBoxWidth, align: "center" });
+        doc.text("CCC", left, curY + 32, { width: logoBoxWidth, align: "center" });
       }
     } else {
       doc.font("Helvetica-Bold").fontSize(18).fillColor("#1e3a8a");
-      doc.text("CCC", left, curY + 22, { width: logoBoxWidth, align: "center" });
+      doc.text("CCC", left, curY + 32, { width: logoBoxWidth, align: "center" });
     }
 
     // Middle: Company Info
-    const rightBoxWidth = 82;
+    const rightBoxWidth = 90;
     const midWidth = width - logoBoxWidth - rightBoxWidth;
+    const midX = left + logoBoxWidth;
+
     doc.fillColor("#000000");
-    doc.font("Helvetica-Bold").fontSize(12.5);
-    doc.text(COMPANY_NAME, left + logoBoxWidth, curY + 5, { width: midWidth, align: "center" });
+    doc.font("Helvetica-Bold").fontSize(13.5);
+    doc.text(COMPANY_NAME, midX, curY + 8, { width: midWidth, align: "center" });
 
-    doc.font("Helvetica-Bold").fontSize(7.8).fillColor("#4b5563");
-    doc.text(COMPANY_SUB, left + logoBoxWidth, curY + 20, { width: midWidth, align: "center" });
+    doc.font("Helvetica-Bold").fontSize(8.5).fillColor("#4b5563");
+    doc.text(COMPANY_SUB, midX, curY + 28, { width: midWidth, align: "center" });
 
-    doc.font("Helvetica").fontSize(6.8).fillColor("#374151");
-    doc.text(COMPANY_ADDR, left + logoBoxWidth, curY + 33, { width: midWidth, align: "center" });
-    doc.text(COMPANY_CELL, left + logoBoxWidth, curY + 46, { width: midWidth, align: "center" });
+    doc.font("Helvetica").fontSize(7.5).fillColor("#374151");
+    doc.text(COMPANY_ADDR, midX, curY + 44, { width: midWidth, align: "center" });
+    doc.text(COMPANY_CELL, midX, curY + 59, { width: midWidth, align: "center" });
 
-    // Right: IATA Logo
+    // Right: IATA Logo Box
     const rightX = left + width - rightBoxWidth;
     drawBox(rightX, curY, rightBoxWidth, headerHeight);
     if (iataLogoBuffer) {
       try {
-        doc.image(iataLogoBuffer, rightX + 4, curY + 4, {
-          fit: [rightBoxWidth - 8, headerHeight - 8],
+        doc.image(iataLogoBuffer, rightX + 6, curY + 6, {
+          fit: [rightBoxWidth - 12, headerHeight - 12],
           align: "center",
           valign: "center",
         });
       } catch (err) {
-        doc.font("Helvetica-Bold").fontSize(12).fillColor("#1e3a8a");
-        doc.text("IATA", rightX, curY + 24, { width: rightBoxWidth, align: "center" });
+        doc.font("Helvetica-Bold").fontSize(13).fillColor("#1e3a8a");
+        doc.text("IATA", rightX, curY + 34, { width: rightBoxWidth, align: "center" });
       }
     } else {
-      doc.font("Helvetica-Bold").fontSize(12).fillColor("#1e3a8a");
-      doc.text("IATA", rightX, curY + 24, { width: rightBoxWidth, align: "center" });
+      doc.font("Helvetica-Bold").fontSize(13).fillColor("#1e3a8a");
+      doc.text("IATA", rightX, curY + 34, { width: rightBoxWidth, align: "center" });
     }
 
     curY += headerHeight;
 
     // ================= 2. PAN / GST =================
-    const panHeight = 15;
+    const panHeight = 20;
     drawBox(left, curY, width, panHeight);
-    doc.font("Helvetica-Bold").fontSize(7.5).fillColor("#000000");
-    doc.text(`PAN NO: ${COMPANY_PAN}`, left + 8, curY + 3.5, { width: width / 2 - 10 });
-    doc.text(`GST NO : ${COMPANY_GST}`, left + width / 2 + 8, curY + 3.5, {
-      width: width / 2 - 10,
+    doc.font("Helvetica-Bold").fontSize(8).fillColor("#000000");
+    doc.text(`PAN NO: ${COMPANY_PAN}`, left + 8, curY + 5.5, { width: width / 2 - 12 });
+    doc.text(`GST NO : ${COMPANY_GST}`, left + width / 2 + 8, curY + 5.5, {
+      width: width / 2 - 12,
     });
     curY += panHeight;
 
     // ================= 3. TAX INVOICE TITLE =================
-    const titleHeight = 16;
+    const titleHeight = 20;
     drawFilledBox(left, curY, width, titleHeight, "#f3f4f6");
     drawBox(left, curY, width, titleHeight);
-    doc.font("Helvetica-Bold").fontSize(9.5).fillColor("#111827");
-    doc.text("TAX INVOICE", left, curY + 3, { width: width, align: "center" });
+    doc.font("Helvetica-Bold").fontSize(10).fillColor("#111827");
+    doc.text("TAX INVOICE", left, curY + 4.5, { width: width, align: "center" });
     curY += titleHeight;
 
     // ================= 4. SHIPPER & CONSIGNEE DETAILS =================
-    const partiesHeight = 60;
+    const partiesHeight = 80;
     const colHalf = width / 2;
 
     drawBox(left, curY, colHalf, partiesHeight);
     drawBox(left + colHalf, curY, colHalf, partiesHeight);
 
     // Shipper
-    doc.font("Helvetica-Bold").fontSize(7.5).fillColor("#000000");
-    doc.text("SHIPPER DETAILS", left + 6, curY + 4, { width: colHalf - 12 });
-    doc.font("Helvetica").fontSize(7).fillColor("#1f2937");
+    doc.font("Helvetica-Bold").fontSize(8).fillColor("#000000");
+    doc.text("SHIPPER DETAILS", left + 8, curY + 6, { width: colHalf - 16 });
+    doc.font("Helvetica").fontSize(7.5).fillColor("#1f2937");
     const shipperText = [
       data.shipper_name || "-",
       data.shipper_address || "",
@@ -302,41 +304,42 @@ async function generateInvoicePdf(data, outputPath) {
     ]
       .filter(Boolean)
       .join("\n");
-    doc.text(shipperText, left + 6, curY + 15, { width: colHalf - 12, height: partiesHeight - 17 });
+    doc.text(shipperText, left + 8, curY + 20, { width: colHalf - 16, height: partiesHeight - 24, lineGap: 1.5 });
 
     // Consignee
-    doc.font("Helvetica-Bold").fontSize(7.5).fillColor("#000000");
-    doc.text("CONSIGNEE DETAILS", left + colHalf + 6, curY + 4, { width: colHalf - 12 });
-    doc.font("Helvetica").fontSize(7).fillColor("#1f2937");
+    doc.font("Helvetica-Bold").fontSize(8).fillColor("#000000");
+    doc.text("CONSIGNEE DETAILS", left + colHalf + 8, curY + 6, { width: colHalf - 16 });
+    doc.font("Helvetica").fontSize(7.5).fillColor("#1f2937");
     const consigneeText = [
       data.consignee_name || "-",
       data.consignee_address || "",
     ]
       .filter(Boolean)
       .join("\n");
-    doc.text(consigneeText, left + colHalf + 6, curY + 15, {
-      width: colHalf - 12,
-      height: partiesHeight - 17,
+    doc.text(consigneeText, left + colHalf + 8, curY + 20, {
+      width: colHalf - 16,
+      height: partiesHeight - 24,
+      lineGap: 1.5,
     });
 
     curY += partiesHeight;
 
     // ================= 5. BILL DETAILS =================
-    const billHeaderHeight = 12.5;
+    const billHeaderHeight = 16;
     drawFilledBox(left, curY, width, billHeaderHeight, "#e5e7eb");
     drawBox(left, curY, width, billHeaderHeight);
-    doc.font("Helvetica-Bold").fontSize(7.5).fillColor("#111827");
-    doc.text("BILL DETAILS", left, curY + 2.5, { width: width, align: "center" });
+    doc.font("Helvetica-Bold").fontSize(8).fillColor("#111827");
+    doc.text("BILL DETAILS", left, curY + 4, { width: width, align: "center" });
     curY += billHeaderHeight;
 
-    const rowH = 12;
+    const rowH = 15;
     const billRowsCount = 6;
-    const billBoxH = billRowsCount * rowH;
+    const billBoxH = billRowsCount * rowH; // 90 pt
     drawBox(left, curY, width, billBoxH);
 
-    const xLeftLabelW = 95;
-    const xMidDivider = left + 355;
-    const xRightLabelW = 46;
+    const xLeftLabelW = 96;
+    const xMidDivider = left + 358;
+    const xRightLabelW = 50;
     const xRightValX = xMidDivider + xRightLabelW;
 
     for (let i = 1; i < billRowsCount; i++) {
@@ -348,7 +351,7 @@ async function generateInvoicePdf(data, outputPath) {
     doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(xMidDivider, curY).lineTo(xMidDivider, curY + 5 * rowH).stroke().restore();
     doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(xRightValX, curY).lineTo(xRightValX, curY + 5 * rowH).stroke().restore();
 
-    const xAwbDateDivider = left + xLeftLabelW + 115;
+    const xAwbDateDivider = left + xLeftLabelW + 116;
     doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(xAwbDateDivider, curY + 2 * rowH).lineTo(xAwbDateDivider, curY + 3 * rowH).stroke().restore();
 
     const invDateStr = formatToDDMMYYYY(data.inv_date);
@@ -356,108 +359,109 @@ async function generateInvoicePdf(data, outputPath) {
 
     // Row 1
     let y = curY;
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("INVOICE NO:", left + 4, y + 2.5, { width: xLeftLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(data.invoice_no || "", left + xLeftLabelW + 4, y + 2.5, { width: xMidDivider - (left + xLeftLabelW) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("INVOICE NO:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.invoice_no || "", left + xLeftLabelW + 6, y + 3.8, { width: xMidDivider - (left + xLeftLabelW) - 10 });
 
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("PKGS", xMidDivider + 4, y + 2.5, { width: xRightLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(data.pkgs || "", xRightValX + 4, y + 2.5, { width: width - (xRightValX - left) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("PKGS", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.pkgs || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
 
     // Row 2
     y = curY + rowH;
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("REF.NO:", left + 4, y + 2.5, { width: xLeftLabelW - 6 });
-    doc.font("Helvetica").fontSize(6.8).fillColor("#000000");
-    doc.text(data.ref_no || "", left + xLeftLabelW + 4, y + 2.5, { width: xMidDivider - (left + xLeftLabelW) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("REF.NO:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.font("Helvetica").fontSize(7.2).fillColor("#000000");
+    doc.text(data.ref_no || "", left + xLeftLabelW + 6, y + 3.8, { width: xMidDivider - (left + xLeftLabelW) - 10 });
 
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("GR WT", xMidDivider + 4, y + 2.5, { width: xRightLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(data.gr_wt || "", xRightValX + 4, y + 2.5, { width: width - (xRightValX - left) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("GR WT", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.gr_wt || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
 
     // Row 3
     y = curY + 2 * rowH;
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("INV DATE:", left + 4, y + 2.5, { width: xLeftLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(invDateStr, left + xLeftLabelW + 4, y + 2.5, { width: 108 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("INV DATE:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(invDateStr, left + xLeftLabelW + 6, y + 3.8, { width: 108 });
 
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("AWB DATE", xAwbDateDivider + 4, y + 2.5, { width: 56 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(awbDateStr, xAwbDateDivider + 60, y + 2.5, { width: xMidDivider - (xAwbDateDivider + 60) - 4 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("AWB DATE", xAwbDateDivider + 6, y + 3.8, { width: 56 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(awbDateStr, xAwbDateDivider + 62, y + 3.8, { width: xMidDivider - (xAwbDateDivider + 62) - 6 });
 
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("C.WT", xMidDivider + 4, y + 2.5, { width: xRightLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(data.c_wt || "", xRightValX + 4, y + 2.5, { width: width - (xRightValX - left) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("C.WT", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.c_wt || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
 
     // Row 4
     y = curY + 3 * rowH;
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("AWB NO:", left + 4, y + 2.5, { width: xLeftLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(data.awb_no || "", left + xLeftLabelW + 4, y + 2.5, { width: xMidDivider - (left + xLeftLabelW) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("AWB NO:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.awb_no || "", left + xLeftLabelW + 6, y + 3.8, { width: xMidDivider - (left + xLeftLabelW) - 10 });
 
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("FROM", xMidDivider + 4, y + 2.5, { width: xRightLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(data.origin || "", xRightValX + 4, y + 2.5, { width: width - (xRightValX - left) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("FROM", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.origin || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
 
     // Row 5
     y = curY + 4 * rowH;
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("COMMODITY:", left + 4, y + 2.5, { width: xLeftLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(data.commodity || "", left + xLeftLabelW + 4, y + 2.5, { width: xMidDivider - (left + xLeftLabelW) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("COMMODITY:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.commodity || "", left + xLeftLabelW + 6, y + 3.8, { width: xMidDivider - (left + xLeftLabelW) - 10 });
 
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("TO", xMidDivider + 4, y + 2.5, { width: xRightLabelW - 6 });
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#000000");
-    doc.text(data.destination || "", xRightValX + 4, y + 2.5, { width: width - (xRightValX - left) - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("TO", xMidDivider + 6, y + 3.8, { width: xRightLabelW - 8 });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#000000");
+    doc.text(data.destination || "", xRightValX + 6, y + 3.8, { width: width - (xRightValX - left) - 10 });
 
     // Row 6: REMARKS
     y = curY + 5 * rowH;
-    doc.font("Helvetica-Bold").fontSize(6.8).fillColor("#111827");
-    doc.text("REMARKS:", left + 4, y + 2.5, { width: xLeftLabelW - 6 });
-    doc.font("Helvetica").fontSize(6.5).fillColor("#000000");
-    doc.text(data.remarks || "", left + xLeftLabelW + 4, y + 2.5, {
-      width: width - xLeftLabelW - 8,
-      height: rowH - 3,
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("REMARKS:", left + 6, y + 3.8, { width: xLeftLabelW - 8 });
+    doc.font("Helvetica").fontSize(7).fillColor("#000000");
+    doc.text(data.remarks || "", left + xLeftLabelW + 6, y + 3.8, {
+      width: width - xLeftLabelW - 12,
+      height: rowH - 4,
     });
 
     curY += billBoxH;
 
     // ================= 6. CHARGES DETAILS SECTION =================
     const cols = [
-      { name1: "CHARGES DETAILS", name2: "", w: 155, align: "left" },
-      { name1: "FREIGHT", name2: "RATE", w: 44, align: "center" },
-      { name1: "HSN", name2: "CODE", w: 44, align: "center" },
-      { name1: "TAXABLE", name2: "AMOUNT", w: 65, align: "right" },
+      { name1: "CHARGES DETAILS", name2: "", w: 156.28, align: "left" },
+      { name1: "FREIGHT", name2: "RATE", w: 45, align: "center" },
+      { name1: "HSN", name2: "CODE", w: 45, align: "center" },
+      { name1: "TAXABLE", name2: "AMOUNT", w: 66, align: "right" },
       { name1: "IGST", name2: "18%", w: 56, align: "right" },
       { name1: "CGST", name2: "9%", w: 56, align: "right" },
       { name1: "SGST", name2: "9%", w: 56, align: "right" },
       { name1: "NON TAXABLE", name2: "AMOUNT", w: 67, align: "right" },
     ];
 
-    const topHdrH = 12;
-    const subHdrH = 14;
-    const totalHdrH = topHdrH + subHdrH;
+    const topHdrH = 13;
+    const subHdrH = 16;
+    const totalHdrH = topHdrH + subHdrH; // 29 pt
 
     drawFilledBox(left, curY, width, totalHdrH, "#f3f4f6");
     drawBox(left, curY, width, totalHdrH);
 
     // Horizontal divider between Top Header & Sub Header
-    doc.save().lineWidth(0.4).strokeColor("#9ca3af").moveTo(left + 155 + 44 + 44, curY + topHdrH).lineTo(left + width, curY + topHdrH).stroke().restore();
+    const taxColsStartX = left + 156.28 + 45 + 45;
+    doc.save().lineWidth(0.4).strokeColor("#9ca3af").moveTo(taxColsStartX, curY + topHdrH).lineTo(left + width, curY + topHdrH).stroke().restore();
 
     // Top Header Titles
-    const taxGroupW = 65 + 56 + 56 + 56;
-    doc.font("Helvetica-Bold").fontSize(6.5).fillColor("#111827");
-    doc.text("TAXABLE AMOUNT", left + 155 + 44 + 44, curY + 2.8, { width: taxGroupW, align: "center" });
-    doc.text("GST", left + 155 + 44 + 44 + taxGroupW, curY + 2.8, { width: 67, align: "center" });
+    const taxGroupW = 66 + 56 + 56 + 56;
+    doc.font("Helvetica-Bold").fontSize(7).fillColor("#111827");
+    doc.text("TAXABLE AMOUNT", taxColsStartX, curY + 3.2, { width: taxGroupW, align: "center" });
+    doc.text("GST", taxColsStartX + taxGroupW, curY + 3.2, { width: 67, align: "center" });
 
     // Vertical column lines in header
     let cxHdr = left;
@@ -469,16 +473,16 @@ async function generateInvoicePdf(data, outputPath) {
       cxHdr += c.w;
     });
 
-    // Sub Header Titles (with proper non-overlapping Y positioning)
+    // Sub Header Titles
     let cxSubHdr = left;
     cols.forEach((c, i) => {
-      doc.font("Helvetica-Bold").fontSize(6).fillColor("#111827");
+      doc.font("Helvetica-Bold").fontSize(6.5).fillColor("#111827");
       if (i === 0) {
-        doc.text(c.name1, cxSubHdr + 4, curY + 9, { width: c.w - 8, align: c.align });
+        doc.text(c.name1, cxSubHdr + 6, curY + 11, { width: c.w - 10, align: c.align });
       } else {
-        doc.text(c.name1, cxSubHdr + 1, curY + topHdrH + 1.8, { width: c.w - 2, align: c.align });
+        doc.text(c.name1, cxSubHdr + 2, curY + topHdrH + 2.2, { width: c.w - 4, align: c.align });
         if (c.name2) {
-          doc.text(c.name2, cxSubHdr + 1, curY + topHdrH + 7.5, { width: c.w - 2, align: c.align });
+          doc.text(c.name2, cxSubHdr + 2, curY + topHdrH + 8.5, { width: c.w - 4, align: c.align });
         }
       }
       cxSubHdr += c.w;
@@ -487,8 +491,8 @@ async function generateInvoicePdf(data, outputPath) {
     curY += totalHdrH;
 
     // 14 Charges Rows
-    const chargeRowH = 11.5;
-    const totalChargeRowsH = finalCharges.length * chargeRowH;
+    const chargeRowH = 15;
+    const totalChargeRowsH = finalCharges.length * chargeRowH; // 210 pt
     drawBox(left, curY, width, totalChargeRowsH);
 
     let cxCol = left;
@@ -521,8 +525,9 @@ async function generateInvoicePdf(data, outputPath) {
       ];
 
       cols.forEach((col, i) => {
-        doc.font("Helvetica").fontSize(6).fillColor("#111827");
-        doc.text(rowVals[i].val, cx + 2, y + 2.5, { width: col.w - 4, align: rowVals[i].align });
+        doc.font("Helvetica").fontSize(7).fillColor("#111827");
+        const cellPadX = col.align === "left" ? 6 : 4;
+        doc.text(rowVals[i].val, cx + cellPadX, y + 3.8, { width: col.w - cellPadX * 2, align: rowVals[i].align });
         cx += col.w;
       });
     });
@@ -538,19 +543,19 @@ async function generateInvoicePdf(data, outputPath) {
     const declaredTotal = parseFloat(data.total) || (subTaxable + subIgst + subCgst + subSgst + subNonTax);
     const roundOff = declaredTotal - (subTaxable + subIgst + subCgst + subSgst + subNonTax);
 
-    const subH = 13.5;
+    const subH = 17;
     drawFilledBox(left, curY, width, subH, "#f9fafb");
     drawBox(left, curY, width, subH);
 
-    doc.font("Helvetica").fontSize(6).fillColor("#6b7280");
-    doc.text("ROUND OFF", left + 4, curY + 3.5, { width: 80 });
+    doc.font("Helvetica").fontSize(7).fillColor("#6b7280");
+    doc.text("ROUND OFF", left + 6, curY + 4.5, { width: 80 });
 
-    doc.font("Helvetica-Bold").fontSize(6.5).fillColor("#111827");
-    doc.text("SUB TOTAL", left + 140, curY + 3.5, { width: 97, align: "right" });
+    doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+    doc.text("SUB TOTAL", left + 140, curY + 4.5, { width: 100, align: "right" });
 
-    let cxSub = left + 155 + 44 + 44;
+    let cxSub = left + 156.28 + 45 + 45;
     const subCols = [
-      { val: formatNum(subTaxable), w: 65 },
+      { val: formatNum(subTaxable), w: 66 },
       { val: formatNum(subIgst), w: 56 },
       { val: formatNum(subCgst), w: 56 },
       { val: formatNum(subSgst), w: 56 },
@@ -559,62 +564,62 @@ async function generateInvoicePdf(data, outputPath) {
 
     subCols.forEach((sc) => {
       doc.save().lineWidth(0.3).strokeColor("#9ca3af").moveTo(cxSub, curY).lineTo(cxSub, curY + subH).stroke().restore();
-      doc.font("Helvetica-Bold").fontSize(6.5).fillColor("#111827");
-      doc.text(sc.val, cxSub + 2, curY + 3.5, { width: sc.w - 4, align: "right" });
+      doc.font("Helvetica-Bold").fontSize(7.2).fillColor("#111827");
+      doc.text(sc.val, cxSub + 2, curY + 4.5, { width: sc.w - 6, align: "right" });
       cxSub += sc.w;
     });
 
     curY += subH;
 
     // ================= 7. TOTAL IN RS & WORDS ROW =================
-    const wordsH = 16;
-    const rightAmountW = 90;
+    const wordsH = 22;
+    const rightAmountW = 95;
     const leftWordsW = width - rightAmountW;
 
     drawBox(left, curY, leftWordsW, wordsH);
     drawBox(left + leftWordsW, curY, rightAmountW, wordsH);
 
-    doc.font("Helvetica-Bold").fontSize(7).fillColor("#000000");
+    doc.font("Helvetica-Bold").fontSize(7.8).fillColor("#000000");
     const amtWordsUpper = (data.amount_words || "").toUpperCase().trim();
-    doc.text(`TOTAL IN RS:( ${amtWordsUpper || "ZERO RUPEES ONLY"} )`, left + 5, curY + 4, {
-      width: leftWordsW - 10,
+    doc.text(`TOTAL IN RS:( ${amtWordsUpper || "ZERO RUPEES ONLY"} )`, left + 8, curY + 5.5, {
+      width: leftWordsW - 16,
     });
 
-    doc.font("Helvetica-Bold").fontSize(8.5).fillColor("#000000");
-    doc.text(formatNum(declaredTotal), left + leftWordsW + 2, curY + 3.5, {
-      width: rightAmountW - 6,
+    doc.font("Helvetica-Bold").fontSize(9.5).fillColor("#000000");
+    doc.text(formatNum(declaredTotal), left + leftWordsW + 4, curY + 5, {
+      width: rightAmountW - 10,
       align: "right",
     });
 
     curY += wordsH;
 
     // ================= 8. BANK DETAILS (LEFT) + GST SUMMARY (RIGHT) =================
-    const bottomH = 78;
-    const bankW = 345;
-    const gstW = width - bankW; // 198
+    const bottomH = 96;
+    const bankW = 348;
+    const gstW = width - bankW; // 199.28 pt
 
     drawBox(left, curY, bankW, bottomH);
     drawBox(left + bankW, curY, gstW, bottomH);
 
     // Bank Details Header
-    const bankHdrH = 14;
+    const bankHdrH = 16;
     drawFilledBox(left, curY, bankW, bankHdrH, "#f2ede4");
     doc.save().lineWidth(0.5).strokeColor("#000000").moveTo(left, curY + bankHdrH).lineTo(left + bankW, curY + bankHdrH).stroke().restore();
 
-    doc.font("Helvetica-Bold").fontSize(7.5).fillColor("#000000");
-    doc.text("Bank details are as follows:", left + 6, curY + 3.5);
+    doc.font("Helvetica-Bold").fontSize(7.8).fillColor("#000000");
+    doc.text("Bank details are as follows:", left + 8, curY + 4);
 
-    let bankY = curY + 16.5;
+    let bankY = curY + 19;
     BANK_LINES.forEach(([label, val]) => {
-      doc.font("Helvetica").fontSize(6.8).fillColor("#111827");
-      doc.text(label, left + 6, bankY, { width: 80 });
+      doc.font("Helvetica").fontSize(7.2).fillColor("#111827");
+      doc.text(label, left + 8, bankY, { width: 82 });
 
-      doc.text(":", left + 90, bankY, { width: 10 });
+      doc.text(":", left + 92, bankY, { width: 10 });
 
-      doc.font("Helvetica-Bold").fontSize(7).fillColor("#000000");
-      doc.text(val, left + 105, bankY, { width: bankW - 110 });
+      doc.font("Helvetica-Bold").fontSize(7.5).fillColor("#000000");
+      doc.text(val, left + 104, bankY, { width: bankW - 112 });
 
-      bankY += 9.8;
+      bankY += 12.2;
     });
 
     // GST Tax Summary Table (Right)
@@ -631,17 +636,17 @@ async function generateInvoicePdf(data, outputPath) {
     doc.save().lineWidth(0.5).strokeColor("#000000").moveTo(gstDividerX, curY).lineTo(gstDividerX, curY + bottomH).stroke().restore();
 
     let gstY = curY;
-    const gstRowH = bottomH / summaryRows.length;
+    const gstRowH = bottomH / summaryRows.length; // 16 pt
     summaryRows.forEach(([lbl, val, isBold], idx) => {
       if (idx > 0) {
         doc.save().lineWidth(0.4).strokeColor("#000000").moveTo(left + bankW, gstY).lineTo(left + width, gstY).stroke().restore();
       }
-      doc.font(isBold ? "Helvetica-Bold" : "Helvetica").fontSize(6.8).fillColor("#000000");
-      doc.text(lbl, left + bankW + 6, gstY + 3.5, { width: gstW * 0.58 - 8 });
+      doc.font(isBold ? "Helvetica-Bold" : "Helvetica").fontSize(7.2).fillColor("#000000");
+      doc.text(lbl, left + bankW + 8, gstY + 4, { width: gstW * 0.58 - 12 });
 
-      doc.font(isBold ? "Helvetica-Bold" : "Helvetica").fontSize(isBold ? 8 : 6.8).fillColor("#000000");
-      doc.text(val, gstDividerX + 2, gstY + (isBold ? 2.5 : 3.5), {
-        width: gstW * 0.42 - 6,
+      doc.font(isBold ? "Helvetica-Bold" : "Helvetica").fontSize(isBold ? 8.5 : 7.2).fillColor("#000000");
+      doc.text(val, gstDividerX + 4, gstY + (isBold ? 3.5 : 4), {
+        width: gstW * 0.42 - 10,
         align: "right",
       });
       gstY += gstRowH;
@@ -650,47 +655,46 @@ async function generateInvoicePdf(data, outputPath) {
     curY += bottomH;
 
     // ================= 9. NOTES (LEFT) + FOR CCC & SIGNATORY (RIGHT) =================
-    const notesH = 60;
-    const notesW = 345;
+    // Height dynamically fills the remaining printable A4 page height (109.89 pt)
+    const notesH = 841.89 - PAGE_MARGIN - curY; // exactly 109.89 pt
+    const notesW = 348;
     const sigW = width - notesW;
 
     drawBox(left, curY, notesW, notesH);
     drawBox(left + notesW, curY, sigW, notesH);
 
-    // Notes (Left) with clean non-overlapping spacing
-    doc.font("Helvetica-Bold").fontSize(7).fillColor("#000000");
-    doc.text("NOTE:", left + 6, curY + 3.5);
-    let noteY = curY + 12.5;
-    NOTES.forEach((n, i) => {
-      doc.font("Helvetica").fontSize(5.8).fillColor("#111827");
-      doc.text(n, left + 6, noteY, { width: notesW - 12 });
-      noteY += (i === 0 ? 14 : 9.5);
+    // Notes (Left) with sufficient inner padding and clean non-overlapping spacing
+    const notePaddingX = 8;
+    const notePaddingTop = 8;
+    doc.font("Helvetica-Bold").fontSize(7.5).fillColor("#000000");
+    doc.text("NOTE:", left + notePaddingX, curY + notePaddingTop);
+
+    let noteY = curY + 20;
+    const noteAvailableW = notesW - notePaddingX * 2;
+    NOTES.forEach((n) => {
+      doc.font("Helvetica").fontSize(6.8).fillColor("#1f2937");
+      const noteTextHeight = doc.heightOfString(n, { width: noteAvailableW, lineGap: 1.5 });
+      doc.text(n, left + notePaddingX, noteY, {
+        width: noteAvailableW,
+        lineGap: 1.5,
+      });
+      noteY += noteTextHeight + 3.2;
     });
 
     // Right: FOR CHOLAMANDAL CARGO CONNECTIONS + Signature Space
-    doc.font("Helvetica-Bold").fontSize(7).fillColor("#000000");
-    doc.text("FOR CHOLAMANDAL CARGO CONNECTIONS", left + notesW + 4, curY + 5, {
-      width: sigW - 8,
+    doc.font("Helvetica-Bold").fontSize(7.8).fillColor("#000000");
+    doc.text("FOR CHOLAMANDAL CARGO CONNECTIONS", left + notesW + 6, curY + 8, {
+      width: sigW - 12,
       align: "center",
     });
 
-    doc.font("Helvetica-Bold").fontSize(7).fillColor("#000000");
-    doc.text("AUTHORISED SIGNATORY", left + notesW + 4, curY + notesH - 12, {
-      width: sigW - 8,
+    doc.font("Helvetica-Bold").fontSize(7.8).fillColor("#000000");
+    doc.text("AUTHORISED SIGNATORY", left + notesW + 6, curY + notesH - 16, {
+      width: sigW - 12,
       align: "center",
     });
 
-    curY += notesH + 6;
-
-    // ================= 10. FOOTER =================
-    doc.font("Helvetica").fontSize(6.5).fillColor("#9ca3af");
-    doc.text(
-      `Invoice #${data.invoice_no || ""}  |  Cholamandal Cargo Connections Portal`,
-      left,
-      curY,
-      { width: width, align: "center" }
-    );
-
+    // Footer removed as required
     doc.end();
   });
 }
