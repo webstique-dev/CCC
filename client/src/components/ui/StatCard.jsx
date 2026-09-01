@@ -43,24 +43,24 @@ export function StatCard({
   return (
     <div
       onClick={onClick}
-      className={`bg-white p-4 sm:p-5 rounded-2xl border border-slate-200 shadow-sm transition-all duration-200 ${scheme.border} ${
+      className={`bg-white p-3.5 sm:p-5 rounded-2xl border border-slate-200 shadow-sm transition-all duration-200 ${scheme.border} ${
         onClick ? 'cursor-pointer hover:shadow-md active:scale-[0.99]' : ''
       }`}
     >
-      <div className="flex items-start justify-between">
-        <div>
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+      <div className="flex items-start justify-between gap-2">
+        <div className="min-w-0">
+          <span className="text-[10px] sm:text-xs font-semibold text-slate-500 uppercase tracking-wider truncate block">
             {title}
           </span>
-          <div className="text-2xl sm:text-3xl font-bold text-slate-900 mt-1">{value}</div>
+          <div className="text-xl sm:text-3xl font-bold text-slate-900 mt-0.5 sm:mt-1">{value}</div>
         </div>
         {Icon && (
-          <div className={`p-2.5 rounded-xl ${scheme.bg} ${scheme.text}`}>
-            <Icon className="w-5 h-5" />
+          <div className={`p-2 sm:p-2.5 rounded-xl shrink-0 ${scheme.bg} ${scheme.text}`}>
+            <Icon className="w-4 h-4 sm:w-5 sm:h-5" />
           </div>
         )}
       </div>
-      {subtitle && <p className="text-xs text-slate-500 mt-2">{subtitle}</p>}
+      {subtitle && <p className="text-[10px] sm:text-xs text-slate-500 mt-1.5 sm:mt-2 truncate">{subtitle}</p>}
     </div>
   );
 }

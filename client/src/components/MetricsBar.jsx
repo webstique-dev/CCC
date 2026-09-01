@@ -14,7 +14,7 @@ export function MetricsBar({ invoices = [], activeStatus = 'All', onSelectStatus
   );
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-5 gap-3 sm:gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-4">
       <StatCard
         title="All Invoices"
         value={counts.total}
@@ -55,15 +55,17 @@ export function MetricsBar({ invoices = [], activeStatus = 'All', onSelectStatus
         onClick={() => onSelectStatus('Completed')}
       />
 
-      <StatCard
-        title="Failed"
-        value={counts.Failed}
-        subtitle="Requires retry"
-        icon={AlertTriangle}
-        color="rose"
-        active={activeStatus === 'Failed'}
-        onClick={() => onSelectStatus('Failed')}
-      />
+      <div className="col-span-2 sm:col-span-1 md:col-span-1">
+        <StatCard
+          title="Failed"
+          value={counts.Failed}
+          subtitle="Requires retry"
+          icon={AlertTriangle}
+          color="rose"
+          active={activeStatus === 'Failed'}
+          onClick={() => onSelectStatus('Failed')}
+        />
+      </div>
     </div>
   );
 }

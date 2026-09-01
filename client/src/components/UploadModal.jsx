@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { UploadCloud, FileText, CheckCircle2, AlertCircle, Sparkles, X } from 'lucide-react';
+import { UploadCloud, FileText, Sparkles } from 'lucide-react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
 import { Spinner } from './ui/Spinner';
@@ -78,8 +78,8 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }) {
       subtitle="PDF digital extraction and field parsing"
       size="md"
       footer={
-        <>
-          <Button variant="outline" onClick={handleClose} disabled={uploading}>
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 sm:gap-3 w-full">
+          <Button variant="outline" onClick={handleClose} disabled={uploading} className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button
@@ -88,10 +88,11 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             disabled={!file || uploading}
             loading={uploading}
             icon={Sparkles}
+            className="w-full sm:w-auto font-semibold"
           >
             {uploading ? 'Extracting Fields...' : 'Upload & Extract'}
           </Button>
-        </>
+        </div>
       }
     >
       <div className="space-y-4">
@@ -101,7 +102,7 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }) {
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition duration-200 flex flex-col items-center justify-center ${
+          className={`border-2 border-dashed rounded-2xl p-5 sm:p-8 text-center cursor-pointer transition duration-200 flex flex-col items-center justify-center ${
             isDragging
               ? 'border-brand-500 bg-brand-50/50 scale-[1.01]'
               : file
@@ -118,13 +119,13 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }) {
           />
 
           <div
-            className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-3 shadow-sm ${
+            className={`w-12 h-12 sm:w-14 sm:h-14 rounded-2xl flex items-center justify-center mb-3 shadow-sm ${
               file
                 ? 'bg-emerald-100 text-emerald-600'
                 : 'bg-brand-50 text-brand-600'
             }`}
           >
-            {file ? <FileText className="w-7 h-7" /> : <UploadCloud className="w-7 h-7" />}
+            {file ? <FileText className="w-6 h-6 sm:w-7 sm:h-7" /> : <UploadCloud className="w-6 h-6 sm:w-7 sm:h-7" />}
           </div>
 
           {file ? (
@@ -146,10 +147,10 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }) {
             </div>
           ) : (
             <div>
-              <p className="text-sm font-semibold text-slate-800">
+              <p className="text-xs sm:text-sm font-semibold text-slate-800">
                 Drag and drop your PDF here, or <span className="text-brand-600 underline">browse</span>
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-[11px] sm:text-xs text-slate-500 mt-1">
                 Supports scanned or digital cargo invoices & Air Waybills (Max 20MB)
               </p>
             </div>
@@ -158,8 +159,8 @@ export function UploadModal({ isOpen, onClose, onUploadSuccess }) {
 
         {/* Processing Indicator */}
         {uploading && (
-          <div className="p-4 rounded-xl bg-brand-50/70 border border-brand-200 text-brand-900 flex items-center gap-3 animate-fade-in">
-            <Spinner size="md" className="text-brand-600" />
+          <div className="p-3.5 sm:p-4 rounded-xl bg-brand-50/70 border border-brand-200 text-brand-900 flex items-center gap-3 animate-fade-in">
+            <Spinner size="md" className="text-brand-600 shrink-0" />
             <div className="text-xs">
               <span className="font-semibold block">Analyzing document...</span>
               <span className="text-brand-700">

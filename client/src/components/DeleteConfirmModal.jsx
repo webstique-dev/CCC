@@ -45,8 +45,8 @@ export function DeleteConfirmModal({
       title={isPermanent ? 'Permanently Delete Invoice' : 'Move Invoice to Trash'}
       size="sm"
       footer={
-        <div className="flex items-center justify-end gap-2 w-full">
-          <Button variant="outline" onClick={onClose} disabled={deleting}>
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 sm:gap-3 w-full">
+          <Button variant="outline" onClick={onClose} disabled={deleting} className="w-full sm:w-auto">
             Cancel
           </Button>
           <Button
@@ -54,21 +54,22 @@ export function DeleteConfirmModal({
             onClick={handleDelete}
             loading={deleting}
             icon={Trash2}
+            className="w-full sm:w-auto"
           >
             {isPermanent ? 'Delete Forever' : 'Move to Trash'}
           </Button>
         </div>
       }
     >
-      <div className="flex items-start gap-3.5">
-        <div className={`p-2.5 rounded-2xl flex-shrink-0 ${isPermanent ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
+      <div className="flex items-start gap-3 sm:gap-3.5">
+        <div className={`p-2 sm:p-2.5 rounded-2xl flex-shrink-0 ${isPermanent ? 'bg-rose-100 text-rose-600' : 'bg-amber-100 text-amber-600'}`}>
           <AlertTriangle className="w-5 h-5" />
         </div>
-        <div className="space-y-1">
-          <h4 className="text-sm font-bold text-slate-900">
+        <div className="space-y-1 min-w-0">
+          <h4 className="text-xs sm:text-sm font-bold text-slate-900">
             {isPermanent ? 'Permanent Deletion Warning' : 'Move to Trash?'}
           </h4>
-          <p className="text-xs text-slate-600 leading-relaxed">
+          <p className="text-[11px] sm:text-xs text-slate-600 leading-relaxed">
             {isPermanent ? (
               <>
                 Are you sure you want to permanently erase invoice{' '}

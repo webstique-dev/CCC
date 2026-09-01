@@ -3,6 +3,10 @@ import {
   Sparkles,
   Save,
   FileCheck,
+  ChevronDown,
+  ChevronUp,
+  Tag,
+  Calculator,
 } from 'lucide-react';
 import { Modal } from './ui/Modal';
 import { Button } from './ui/Button';
@@ -40,7 +44,20 @@ export function InvoiceEditorModal({
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
+  const [expandedCharges, setExpandedCharges] = useState(new Set([0])); // Air Freight open by default on mobile
   const toast = useToast();
+
+  const toggleCharge = (idx) => {
+    setExpandedCharges((prev) => {
+      const next = new Set(prev);
+      if (next.has(idx)) {
+        next.delete(idx);
+      } else {
+        next.add(idx);
+      }
+      return next;
+    });
+  };
 
   useEffect(() => {
     if (invoice && invoice.data) {
@@ -300,25 +317,27 @@ export function InvoiceEditorModal({
     );
   };
 
+  const currentCharges = formData.charges || DEFAULT_CHARGES_TEMPLATE;
+
   return (
     <Modal
       isOpen={isOpen}
       onClose={onClose}
       title={
         <div className="flex items-center gap-2">
-          <FileCheck className="w-5 h-5 text-brand-600" />
-          <span>Tax Invoice Details &mdash; {formData.invoice_no || `AWB #${formData.awb_no || invoice.id}`}</span>
+          <FileCheck className="w-5 h-5 text-brand-600 shrink-0" />
+          <span className="truncate">Tax Invoice Details &mdash; {formData.invoice_no || `AWB #${formData.awb_no || invoice.id}`}</span>
         </div>
       }
       subtitle="Select or enter dates, review charges, and verify tax computations before generating PDF."
       size="3xl"
-      bodyClassName="p-4 sm:p-6 space-y-6 max-h-[82vh] overflow-y-auto"
+      bodyClassName="p-3 sm:p-6 space-y-5 max-h-[82vh] overflow-y-auto"
       footer={
-        <div className="flex items-center justify-end gap-2 sm:gap-3 w-full">
-          <Button variant="outline" onClick={onClose}>
+        <div className="flex flex-col-reverse sm:flex-row items-center justify-end gap-2 sm:gap-3 w-full">
+          <Button variant="outline" onClick={onClose} className="w-full sm:w-auto">
             Cancel
           </Button>
-          <Button variant="secondary" icon={Save} loading={saving} onClick={handleSaveDraft}>
+          <Button variant="secondary" icon={Save} loading={saving} onClick={handleSaveDraft} className="w-full sm:w-auto">
             Save Draft
           </Button>
           <Button
@@ -326,7 +345,7 @@ export function InvoiceEditorModal({
             icon={Sparkles}
             loading={generating}
             onClick={handleGenerateInvoice}
-            className="font-semibold shadow-lg shadow-brand-600/30"
+            className="w-full sm:w-auto font-semibold shadow-lg shadow-brand-600/30"
           >
             Generate Tax Invoice PDF
           </Button>
@@ -334,9 +353,9 @@ export function InvoiceEditorModal({
       }
     >
       {/* 1. Shipper & Consignee Details */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
         {/* Shipper Box */}
-        <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
+        <div className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-2xl space-y-3 shadow-xs">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
             Shipper Details
           </h3>
@@ -346,7 +365,7 @@ export function InvoiceEditorModal({
         </div>
 
         {/* Consignee Box */}
-        <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
+        <div className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-2xl space-y-3 shadow-xs">
           <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
             Consignee Details
           </h3>
@@ -356,7 +375,7 @@ export function InvoiceEditorModal({
       </div>
 
       {/* 2. Bill Details */}
-      <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-4">
+      <div className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-2xl space-y-4 shadow-xs">
         <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider border-b border-slate-200 pb-2">
           Bill Details
         </h3>
@@ -394,20 +413,21 @@ export function InvoiceEditorModal({
         </div>
       </div>
 
-      {/* 3. Complete Charges Details Table */}
-      <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-3">
+      {/* 3. Complete Charges Details Section */}
+      <div className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-2xl space-y-3 shadow-xs">
         <div className="flex items-center justify-between border-b border-slate-200 pb-2">
           <div>
             <h3 className="text-xs font-bold text-slate-800 uppercase tracking-wider">
               Charges Details & Tax Computations
             </h3>
             <p className="text-[11px] text-slate-500 font-medium">
-              Freight Rates and HSN codes can be freely entered. HSN codes for subsequent lines are left empty by default.
+              Enter freight rates, HSN codes, and taxable amounts. Taxes are computed automatically.
             </p>
           </div>
         </div>
 
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+        {/* ================= 3A. DESKTOP & TABLET CHARGES SPREADSHEET TABLE (hidden on mobile) ================= */}
+        <div className="hidden md:block overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="bg-slate-100/90 border-b border-slate-200 text-slate-700 font-bold text-[11px]">
@@ -422,7 +442,7 @@ export function InvoiceEditorModal({
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {(formData.charges || DEFAULT_CHARGES_TEMPLATE).map((ch, idx) => {
+              {currentCharges.map((ch, idx) => {
                 const isAirFreight = idx === 0;
                 return (
                   <tr key={idx} className={isAirFreight ? 'bg-amber-50/40 hover:bg-amber-50/60 transition' : 'hover:bg-slate-50/80 transition'}>
@@ -531,17 +551,227 @@ export function InvoiceEditorModal({
             </tfoot>
           </table>
         </div>
+
+        {/* ================= 3B. MOBILE ACCORDION CHARGES CARDS (visible on < md screens) ================= */}
+        <div className="block md:hidden space-y-2.5">
+          {currentCharges.map((ch, idx) => {
+            const isAirFreight = idx === 0;
+            const isExpanded = expandedCharges.has(idx);
+            const hasTaxable = parseFloat(ch.taxable_amount) > 0;
+            const hasNonTax = parseFloat(ch.non_taxable) > 0;
+            const hasRate = parseFloat(ch.freight_rate) > 0;
+
+            return (
+              <div
+                key={idx}
+                className={`rounded-xl border transition duration-150 overflow-hidden ${
+                  isAirFreight
+                    ? 'border-brand-300 bg-brand-50/30'
+                    : isExpanded
+                    ? 'border-slate-300 bg-white shadow-xs'
+                    : 'border-slate-200 bg-white'
+                }`}
+              >
+                {/* Charge Card Header */}
+                <div
+                  onClick={() => toggleCharge(idx)}
+                  className="p-3 cursor-pointer flex items-center justify-between gap-2 select-none hover:bg-slate-50/80 transition"
+                >
+                  <div className="flex items-center gap-2 min-w-0">
+                    <span className="w-5 h-5 rounded-full bg-slate-100 text-slate-600 text-[10px] font-bold flex items-center justify-center shrink-0">
+                      {idx + 1}
+                    </span>
+                    <span className="text-xs font-bold text-slate-800 truncate">
+                      {ch.description}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    {hasTaxable ? (
+                      <span className="text-[11px] font-mono font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-lg">
+                        ₹{formatNumber(ch.taxable_amount)}
+                      </span>
+                    ) : hasNonTax ? (
+                      <span className="text-[10px] font-mono font-semibold text-slate-600 bg-slate-100 px-1.5 py-0.5 rounded-lg">
+                        Non-Tax: ₹{formatNumber(ch.non_taxable)}
+                      </span>
+                    ) : hasRate ? (
+                      <span className="text-[10px] font-mono font-semibold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded-lg">
+                        Rate: {ch.freight_rate}
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-slate-400">₹0.00</span>
+                    )}
+
+                    <div className="p-0.5 text-slate-400">
+                      {isExpanded ? (
+                        <ChevronUp className="w-4 h-4 text-brand-600" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Charge Card Expanded Input Form */}
+                {isExpanded && (
+                  <div className="p-3 pt-1 border-t border-slate-100 bg-slate-50/60 space-y-3">
+                    {isAirFreight && (
+                      <p className="text-[10px] text-brand-700 bg-brand-50 p-2 rounded-lg border border-brand-200/60 font-medium">
+                        💡 Tip: Entering Freight Rate auto-computes Taxable Amount based on C.WT ({formData.c_wt || '0'} kg).
+                      </p>
+                    )}
+
+                    <div className="grid grid-cols-2 gap-2.5">
+                      {/* Freight Rate */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                          Freight Rate
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={ch.freight_rate || ''}
+                          onChange={(e) => handleChargeChange(idx, 'freight_rate', e.target.value)}
+                          placeholder={isAirFreight ? 'e.g. 113' : '0.00'}
+                          className={`w-full px-2.5 py-1.5 text-xs font-mono bg-white border rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none ${
+                            isAirFreight ? 'border-brand-400 font-bold' : 'border-slate-300'
+                          }`}
+                        />
+                      </div>
+
+                      {/* HSN Code */}
+                      <div>
+                        <label className="block text-[10px] font-bold text-slate-600 uppercase mb-1">
+                          HSN Code
+                        </label>
+                        <input
+                          type="text"
+                          value={ch.hsn_code || ''}
+                          onChange={(e) => handleChargeChange(idx, 'hsn_code', e.target.value)}
+                          placeholder={idx < 2 ? (idx === 0 ? '996531' : '996713') : 'Optional'}
+                          className="w-full px-2.5 py-1.5 text-xs font-mono bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Taxable Amount */}
+                      <div className="col-span-2">
+                        <label className="block text-[10px] font-bold text-slate-800 uppercase mb-1">
+                          Taxable Amount (₹)
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={ch.taxable_amount || ''}
+                          onChange={(e) => handleChargeChange(idx, 'taxable_amount', e.target.value)}
+                          placeholder="0.00"
+                          className="w-full px-3 py-2 text-sm font-bold font-mono text-slate-900 bg-white border border-slate-300 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                        />
+                      </div>
+
+                      {/* CGST 9% */}
+                      <div>
+                        <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                          CGST (9%) ₹
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={ch.cgst || ''}
+                          onChange={(e) => handleChargeChange(idx, 'cgst', e.target.value)}
+                          placeholder="0.00"
+                          className="w-full px-2.5 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                        />
+                      </div>
+
+                      {/* SGST 9% */}
+                      <div>
+                        <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                          SGST (9%) ₹
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={ch.sgst || ''}
+                          onChange={(e) => handleChargeChange(idx, 'sgst', e.target.value)}
+                          placeholder="0.00"
+                          className="w-full px-2.5 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                        />
+                      </div>
+
+                      {/* IGST 18% */}
+                      <div>
+                        <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                          IGST (18%) ₹
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={ch.igst || ''}
+                          onChange={(e) => handleChargeChange(idx, 'igst', e.target.value)}
+                          placeholder="0.00"
+                          className="w-full px-2.5 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                        />
+                      </div>
+
+                      {/* Non-Taxable */}
+                      <div>
+                        <label className="block text-[10px] font-semibold text-slate-500 mb-1">
+                          Non-Taxable ₹
+                        </label>
+                        <input
+                          type="number"
+                          step="0.01"
+                          value={ch.non_taxable || ''}
+                          onChange={(e) => handleChargeChange(idx, 'non_taxable', e.target.value)}
+                          placeholder="0.00"
+                          className="w-full px-2.5 py-1.5 text-xs font-mono bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-brand-500 focus:outline-none"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+
+          {/* Mobile Subtotals Summary Accordion Card */}
+          <div className="bg-slate-100 p-3.5 rounded-xl border border-slate-300/80 space-y-2 text-xs">
+            <div className="flex items-center justify-between font-bold text-slate-800 border-b border-slate-200 pb-1.5">
+              <span>CHARGES SUB TOTALS</span>
+              <span className="text-[10px] text-slate-500 font-normal">All 14 Items</span>
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 text-[11px] text-slate-600">
+              <div className="flex justify-between">
+                <span>Taxable Sum:</span>
+                <span className="font-mono font-bold text-slate-800">₹{formatNumber(totals.taxableSum)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>SGST Sum:</span>
+                <span className="font-mono font-bold text-slate-800">₹{formatNumber(totals.sgstSum)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>CGST Sum:</span>
+                <span className="font-mono font-bold text-slate-800">₹{formatNumber(totals.cgstSum)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>IGST Sum:</span>
+                <span className="font-mono font-bold text-slate-800">₹{formatNumber(totals.igstSum)}</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* 4. Financial Summary & Live Tax Breakdown */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
         {/* Total in Words */}
-        <div className="bg-slate-50 border border-slate-200 p-4 rounded-2xl space-y-2 flex flex-col justify-between">
+        <div className="bg-slate-50 border border-slate-200 p-3.5 sm:p-4 rounded-2xl space-y-2 flex flex-col justify-between shadow-xs">
           <div>
             <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
               TOTAL IN RS (Amount in Words)
             </h4>
-            <p className="text-xs font-semibold text-brand-950 mt-2 bg-white p-3 rounded-xl border border-slate-200 uppercase tracking-wide">
+            <p className="text-xs font-semibold text-brand-950 mt-2 bg-white p-3 rounded-xl border border-slate-200 uppercase tracking-wide leading-relaxed">
               {formData.amount_words ? `( ${formData.amount_words} )` : '( ZERO RUPEES ONLY )'}
             </p>
           </div>
@@ -551,7 +781,7 @@ export function InvoiceEditorModal({
         </div>
 
         {/* GST Tax Summary Breakdown */}
-        <div className="bg-slate-900 text-white p-4 rounded-2xl space-y-2 shadow-lg">
+        <div className="bg-slate-900 text-white p-3.5 sm:p-4 rounded-2xl space-y-2 shadow-lg">
           <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider border-b border-slate-800 pb-2">
             Tax Breakdown & Total
           </h4>

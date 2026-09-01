@@ -83,41 +83,41 @@ export function PdfPreviewModal({ isOpen, onClose, invoice }) {
       onClose={onClose}
       title={
         <div className="flex items-center gap-2">
-          <FileText className="w-5 h-5 text-brand-600" />
-          <span>Tax Invoice PDF &mdash; {invoice.data?.invoice_no || `Invoice #${invoice.id}`}</span>
+          <FileText className="w-5 h-5 text-brand-600 shrink-0" />
+          <span className="truncate">Tax Invoice PDF &mdash; {invoice.data?.invoice_no || `Invoice #${invoice.id}`}</span>
         </div>
       }
       subtitle="Cholamandal Cargo Connections official tax invoice template"
       size="3xl"
-      className="h-[92vh] max-h-[92vh]"
-      bodyClassName="overflow-hidden p-2 sm:p-3 flex-1 flex flex-col no-scrollbar"
+      className="h-[94vh] sm:h-[92vh] max-h-[96vh] sm:max-h-[92vh]"
+      bodyClassName="overflow-hidden p-1.5 sm:p-3 flex-1 flex flex-col no-scrollbar"
       footer={
-        <div className="flex items-center justify-between w-full">
-          <span className="text-xs text-slate-500">
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+          <span className="text-[11px] sm:text-xs text-slate-500 truncate max-w-xs text-center sm:text-left">
             {invoice.source_filename ? `Converted from: ${invoice.source_filename}` : 'Generated PDF Document'}
           </span>
-          <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={onClose}>
+          <div className="flex items-center gap-2 sm:gap-3 w-full sm:w-auto justify-end">
+            <Button variant="outline" onClick={onClose} className="flex-1 sm:flex-initial">
               Close
             </Button>
-            <Button variant="secondary" icon={Printer} onClick={handlePrint} disabled={!pdfUrl}>
+            <Button variant="secondary" icon={Printer} onClick={handlePrint} disabled={!pdfUrl} className="flex-1 sm:flex-initial">
               Print
             </Button>
-            <Button variant="primary" icon={Download} onClick={handleDownload} disabled={!pdfUrl}>
+            <Button variant="primary" icon={Download} onClick={handleDownload} disabled={!pdfUrl} className="flex-1 sm:flex-initial font-semibold">
               Download PDF
             </Button>
           </div>
         </div>
       }
     >
-      <div className="w-full flex-1 h-full min-h-[560px] flex flex-col items-center justify-center rounded-xl overflow-hidden border border-slate-200 no-scrollbar bg-slate-50/50">
+      <div className="w-full flex-1 h-full min-h-[420px] sm:min-h-[560px] flex flex-col items-center justify-center rounded-xl overflow-hidden border border-slate-200 no-scrollbar bg-slate-50/50">
         {loading ? (
           <div className="flex flex-col items-center gap-3 p-8 text-slate-500">
             <Spinner size="lg" className="text-brand-600" />
             <span className="text-sm font-medium">Rendering tax invoice...</span>
           </div>
         ) : loadError ? (
-          <div className="p-8 max-w-md text-center flex flex-col items-center gap-3">
+          <div className="p-6 sm:p-8 max-w-md text-center flex flex-col items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center">
               <AlertCircle className="w-6 h-6" />
             </div>
