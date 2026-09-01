@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, User, ArrowRight, ShieldCheck } from 'lucide-react';
+import { Lock, User, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react';
 import { Button } from './ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
@@ -27,6 +27,12 @@ export function LoginView() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleFillAdmin = () => {
+    setUsername('admin');
+    setPassword('admin123');
+    toast.info('Admin credentials auto-filled.');
   };
 
   return (
@@ -110,6 +116,18 @@ export function LoginView() {
                 </Button>
               </div>
             </form>
+
+            {/* Admin-Only Autofill Button */}
+            <div className="mt-5 pt-4 border-t border-slate-800/80 flex items-center justify-center">
+              <button
+                type="button"
+                onClick={handleFillAdmin}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800/90 hover:bg-slate-700/80 border border-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition active:scale-95 shadow-sm"
+              >
+                <KeyRound className="w-3.5 h-3.5 text-brand-400" />
+                <span>Fill Admin Credentials</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
