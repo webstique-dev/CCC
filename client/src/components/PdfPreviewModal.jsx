@@ -89,8 +89,8 @@ export function PdfPreviewModal({ isOpen, onClose, invoice }) {
       }
       subtitle="Cholamandal Cargo Connections official tax invoice template"
       size="3xl"
-      className="h-[94vh] sm:h-[92vh] max-h-[96vh] sm:max-h-[92vh]"
-      bodyClassName="overflow-hidden p-1.5 sm:p-3 flex-1 flex flex-col no-scrollbar"
+      className="h-[88vh] max-h-[88vh]"
+      bodyClassName="p-1.5 sm:p-2.5 flex-1 min-h-0 flex flex-col overflow-hidden no-scrollbar"
       footer={
         <div className="flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
           <span className="text-[11px] sm:text-xs text-slate-500 truncate max-w-xs text-center sm:text-left">
@@ -110,7 +110,7 @@ export function PdfPreviewModal({ isOpen, onClose, invoice }) {
         </div>
       }
     >
-      <div className="w-full flex-1 h-full min-h-[420px] sm:min-h-[560px] flex flex-col items-center justify-center rounded-xl overflow-hidden border border-slate-200 no-scrollbar bg-slate-50/50">
+      <div className="w-full flex-1 min-h-0 h-full flex flex-col items-center justify-center rounded-xl overflow-hidden border border-slate-200 no-scrollbar bg-slate-50/50">
         {loading ? (
           <div className="flex flex-col items-center gap-3 p-8 text-slate-500">
             <Spinner size="lg" className="text-brand-600" />

@@ -37,7 +37,7 @@ export function Modal({
     xl: 'max-w-4xl',
     '2xl': 'max-w-5xl',
     '3xl': 'max-w-6xl',
-    full: 'max-w-[96vw] h-[94vh]',
+    full: 'max-w-[96vw] h-[92vh]',
   };
 
   return (
@@ -50,11 +50,11 @@ export function Modal({
 
       {/* Modal Dialog */}
       <div
-        className={`relative w-full ${sizeClasses[size] || sizeClasses.lg} bg-white rounded-2xl shadow-2xl border border-slate-200/80 flex flex-col max-h-[96vh] sm:max-h-[92vh] z-10 animate-fade-in ${className}`}
+        className={`relative w-full ${sizeClasses[size] || sizeClasses.lg} bg-white rounded-2xl shadow-2xl border border-slate-200/80 flex flex-col max-h-[90vh] overflow-hidden z-10 animate-fade-in ${className}`}
         role="dialog"
         aria-modal="true"
       >
-        {/* Header */}
+        {/* Header (Always anchored) */}
         <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-100 flex-shrink-0 bg-slate-50/50 rounded-t-2xl gap-2">
           <div className="min-w-0 flex-1">
             {title && <h2 className="text-sm sm:text-lg font-bold text-slate-800 truncate">{title}</h2>}
@@ -70,12 +70,12 @@ export function Modal({
           </button>
         </div>
 
-        {/* Content */}
-        <div className={`px-3.5 sm:px-6 py-3.5 sm:py-5 overflow-y-auto flex-1 ${bodyClassName}`}>{children}</div>
+        {/* Content (Scrolls internally if large) */}
+        <div className={`px-3.5 sm:px-6 py-3.5 sm:py-5 overflow-y-auto flex-1 min-h-0 ${bodyClassName}`}>{children}</div>
 
-        {/* Footer */}
+        {/* Footer (Always anchored and visible) */}
         {footer && (
-          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-100 bg-slate-50/70 rounded-b-2xl flex-shrink-0 flex items-center justify-end gap-2 sm:gap-3">
+          <div className="px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-100 bg-slate-50/80 rounded-b-2xl flex-shrink-0 flex items-center justify-end gap-2 sm:gap-3">
             {footer}
           </div>
         )}
