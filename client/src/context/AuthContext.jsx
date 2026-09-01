@@ -41,13 +41,17 @@ export function AuthProvider({ children }) {
 
   const login = async (username, password) => {
     const data = await api.login(username, password);
-    localStorage.setItem('cargo_token', data.token);
-    localStorage.setItem(
-      'cargo_user',
-      JSON.stringify({ username: data.username, full_name: data.full_name })
-    );
-    setToken(data.token);
-    setUser({ username: data.username, full_name: data.full_name });
+    const tokenVal = data.token || data.access_token;
+    const userObj = {
+      username: data.username || data.user?.username || username,
+      full_name: data.full_name || data.user?.full_name || username,
+    };
+    if (tokenVal) {
+      localStorage.setItem('cargo_token', tokenVal);
+      localStorage.setItem('cargo_user', JSON.stringify(userObj));
+      setToken(tokenVal);
+      setUser(userObj);
+    }
     return data;
   };
 

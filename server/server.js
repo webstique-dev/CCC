@@ -101,7 +101,7 @@ function validateInvoiceData(data) {
 // --------------------------------------------------------------------------
 // Auth endpoints
 // --------------------------------------------------------------------------
-app.post("/api/auth/token", async (req, res) => {
+const handleLogin = async (req, res) => {
   const { username, password } = req.body || {};
   if (!username || !password) {
     return res.status(400).json({ detail: "Username and password required." });
@@ -118,10 +118,13 @@ app.post("/api/auth/token", async (req, res) => {
       return res.status(401).json({ detail: "Invalid credentials." });
     }
 
-    const token = auth.createAccessToken({ sub: user.username });
+    const token = auth.createAccessToken(user.username);
     return res.json({
+      token: token,
       access_token: token,
       token_type: "bearer",
+      username: user.username,
+      full_name: user.full_name,
       user: {
         username: user.username,
         full_name: user.full_name,
@@ -131,7 +134,10 @@ app.post("/api/auth/token", async (req, res) => {
     console.error("Login error:", err);
     return res.status(500).json({ detail: "Internal authentication error." });
   }
-});
+};
+
+app.post("/api/auth/token", handleLogin);
+app.post("/api/auth/login", handleLogin);
 
 app.get("/api/auth/me", auth.authMiddleware, async (req, res) => {
   try {
