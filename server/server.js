@@ -260,6 +260,19 @@ app.delete("/api/invoices/:id", auth.authMiddleware, async (req, res) => {
 });
 
 // --------------------------------------------------------------------------
+// Next Sequence Invoice Number
+// --------------------------------------------------------------------------
+app.get("/api/invoices/next-number", auth.authMiddleware, async (req, res) => {
+  try {
+    const invoiceNo = await db.getNextInvoiceNumber(req.query.date || new Date());
+    const fy = db.getFinancialYear(req.query.date || new Date());
+    return res.json({ invoice_no: invoiceNo, financial_year: fy });
+  } catch (err) {
+    return res.status(500).json({ detail: "Failed to generate next invoice number." });
+  }
+});
+
+// --------------------------------------------------------------------------
 // Upload + Extraction
 // --------------------------------------------------------------------------
 app.post(
@@ -301,6 +314,12 @@ app.post(
 
     try {
       const extracted = await extraction.runExtraction(fileBytes);
+      const autoInvoiceNo = await db.getNextInvoiceNumber(extracted.inv_date || new Date());
+      // If extracted had an external bill/invoice number, retain it in ref_no if ref_no is blank
+      if (extracted.invoice_no && !extracted.ref_no) {
+        extracted.ref_no = extracted.invoice_no;
+      }
+      extracted.invoice_no = autoInvoiceNo;
       await db.updateInvoice(invoiceId, { data: extracted, status: "Draft" });
     } catch (exc) {
       await db.updateInvoice(invoiceId, {

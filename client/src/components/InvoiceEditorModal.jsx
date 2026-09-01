@@ -220,10 +220,9 @@ export function InvoiceEditorModal({
 
   const totals = calculateTotals(formData.charges || [], formData.total);
 
-  const validateForm = () => {
+    const validateForm = () => {
     const errs = {};
     const required = [
-      { key: 'invoice_no', label: 'Invoice No' },
       { key: 'inv_date', label: 'Invoice Date' },
       { key: 'awb_no', label: 'AWB No' },
       { key: 'c_wt', label: 'Chargeable Weight (C.WT)' },
@@ -381,7 +380,24 @@ export function InvoiceEditorModal({
         </h3>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          {renderField({ label: 'Invoice No', fieldKey: 'invoice_no', required: true, placeholder: 'e.g. CCC/24-25/101' })}
+          {/* Auto-assigned Invoice No (Locked) */}
+          <div className="space-y-1">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-semibold text-slate-700">
+                Invoice No
+              </label>
+              <span className="text-[10px] font-bold text-brand-700 bg-brand-50 px-1.5 py-0.5 rounded border border-brand-200/80">
+                Auto-Assigned
+              </span>
+            </div>
+            <input
+              type="text"
+              readOnly
+              value={formData.invoice_no || 'Generating...'}
+              title="Invoice number is automatically assigned based on financial year and sequence"
+              className="w-full px-3 py-2 text-xs sm:text-sm rounded-xl font-mono font-bold bg-slate-100/90 text-slate-800 border border-slate-300 cursor-not-allowed select-all focus:outline-none"
+            />
+          </div>
           {renderField({ label: 'Ref No', fieldKey: 'ref_no', placeholder: 'e.g. REF-001' })}
           
           <DatePicker
