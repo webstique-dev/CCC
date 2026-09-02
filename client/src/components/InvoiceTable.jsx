@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { Badge } from './ui/Badge';
 import { Button } from './ui/Button';
+import { SkeletonTableRow, SkeletonMobileCard } from './ui/skeleton';
 import { formatCurrency, formatDate } from '../utils/formatters';
 
 export function InvoiceTable({
@@ -171,14 +172,37 @@ export function InvoiceTable({
         </div>
       </div>
 
-      {/* Loading & Empty States (Shared) */}
+      {/* Loading State: Responsive Skeletons for Desktop Table & Mobile Cards */}
       {loading && invoices.length === 0 ? (
-        <div className="py-16 text-center text-slate-400">
-          <div className="flex flex-col items-center justify-center gap-2">
-            <RefreshCw className="w-7 h-7 animate-spin text-brand-500" />
-            <span className="text-sm font-medium">{isTrashView ? 'Loading trash...' : 'Loading invoices...'}</span>
+        <>
+          {/* Desktop & Tablet Skeleton Table View */}
+          <div className="hidden md:block overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50/80 border-b border-slate-200/80 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+                  <th className="py-3.5 px-4 sm:px-6">Invoice #</th>
+                  <th className="py-3.5 px-4">AWB & Route</th>
+                  <th className="py-3.5 px-4">Shipper & Consignee</th>
+                  <th className="py-3.5 px-4 text-right">Total Amount</th>
+                  <th className="py-3.5 px-4">{isTrashView ? 'Deleted At' : 'Status'}</th>
+                  <th className="py-3.5 px-4 sm:px-6 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {Array.from({ length: 5 }).map((_, idx) => (
+                  <SkeletonTableRow key={idx} variant="invoice" />
+                ))}
+              </tbody>
+            </table>
           </div>
-        </div>
+
+          {/* Mobile Accordion Cards Skeleton View */}
+          <div className="block md:hidden divide-y divide-slate-100">
+            {Array.from({ length: 4 }).map((_, idx) => (
+              <SkeletonMobileCard key={idx} />
+            ))}
+          </div>
+        </>
       ) : invoices.length === 0 ? (
         <div className="py-14 text-center px-4">
           <div className="flex flex-col items-center justify-center max-w-sm mx-auto">

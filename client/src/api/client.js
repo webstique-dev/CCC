@@ -20,7 +20,7 @@ export async function request(endpoint, options = {}) {
     headers,
   });
 
-  if (response.status === 401) {
+  if (response.status === 401 && !endpoint.includes('/auth/token') && !endpoint.includes('/auth/login')) {
     localStorage.removeItem('cargo_token');
     localStorage.removeItem('cargo_user');
     window.dispatchEvent(new Event('auth:unauthorized'));

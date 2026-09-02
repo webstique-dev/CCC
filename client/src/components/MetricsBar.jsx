@@ -1,8 +1,28 @@
 import React from 'react';
 import { FileText, Clock, CheckCircle2, AlertTriangle, Layers } from 'lucide-react';
 import { StatCard } from './ui/StatCard';
+import { SkeletonStatCard } from './ui/skeleton';
 
-export function MetricsBar({ invoices = [], activeStatus = 'All', onSelectStatus }) {
+export function MetricsBar({
+  invoices = [],
+  activeStatus = 'All',
+  onSelectStatus,
+  loading = false,
+}) {
+  if (loading && invoices.length === 0) {
+    return (
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2.5 sm:gap-4">
+        <SkeletonStatCard />
+        <SkeletonStatCard />
+        <SkeletonStatCard />
+        <SkeletonStatCard />
+        <div className="col-span-2 sm:col-span-1 md:col-span-1">
+          <SkeletonStatCard />
+        </div>
+      </div>
+    );
+  }
+
   const counts = invoices.reduce(
     (acc, inv) => {
       acc.total += 1;

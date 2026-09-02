@@ -169,6 +169,7 @@ export default function App() {
         {!isTrashView && (
           <MetricsBar
             invoices={invoices}
+            loading={loading}
             activeStatus={statusFilter}
             onSelectStatus={(status) => setStatusFilter(status)}
           />
