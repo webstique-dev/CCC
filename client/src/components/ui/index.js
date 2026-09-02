@@ -8,6 +8,7 @@ export { Select } from './Select';
 export { Spinner } from './Spinner';
 export { StatCard } from './StatCard';
 export { ConfirmationModal } from './ConfirmationModal';
+export { CholamandalPreloader } from './CholamandalPreloader';
 
 // Skeleton components
 export {

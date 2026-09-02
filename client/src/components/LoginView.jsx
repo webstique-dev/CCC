@@ -4,6 +4,9 @@ import { Button } from './ui/Button';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../context/ToastContext';
 
+const LOGO_SRC = '/logo.png';
+const CLOUDINARY_FALLBACK_LOGO = 'https://res.cloudinary.com/rlokioxu/image/upload/v1788252768/CCC-Logo_dzceec.png';
+
 export function LoginView() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -124,7 +127,12 @@ export function LoginView() {
           <div className="inline-block relative mb-4">
             <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white p-2.5 sm:p-3 shadow-2xl shadow-brand-500/25 ring-4 ring-brand-500/20 flex items-center justify-center mx-auto transition-transform duration-300 hover:scale-105">
               <img
-                src="https://res.cloudinary.com/rlokioxu/image/upload/v1788252768/CCC-Logo_dzceec.png"
+                src={LOGO_SRC}
+                onError={(e) => {
+                  if (e.currentTarget.src !== CLOUDINARY_FALLBACK_LOGO) {
+                    e.currentTarget.src = CLOUDINARY_FALLBACK_LOGO;
+                  }
+                }}
                 alt="Cholamandal Cargo Connections Logo"
                 className="w-full h-full object-contain"
               />

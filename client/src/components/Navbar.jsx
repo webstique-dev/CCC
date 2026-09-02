@@ -4,6 +4,9 @@ import { Button } from './ui/Button';
 import { ConfirmationModal } from './ui';
 import { useAuth } from '../context/AuthContext';
 
+const LOGO_SRC = '/logo.png';
+const CLOUDINARY_FALLBACK_LOGO = 'https://res.cloudinary.com/rlokioxu/image/upload/v1788252768/CCC-Logo_dzceec.png';
+
 export function Navbar({ onOpenUpload }) {
   const { user, logout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -56,7 +59,12 @@ export function Navbar({ onOpenUpload }) {
             <div className="flex items-center shrink-0">
               <div className="w-10 h-10 sm:w-11 sm:h-11 rounded-xl bg-white p-1 shadow-md shadow-brand-500/20 flex items-center justify-center transition-transform hover:scale-105">
                 <img
-                  src="https://res.cloudinary.com/rlokioxu/image/upload/v1788252768/CCC-Logo_dzceec.png"
+                  src={LOGO_SRC}
+                  onError={(e) => {
+                    if (e.currentTarget.src !== CLOUDINARY_FALLBACK_LOGO) {
+                      e.currentTarget.src = CLOUDINARY_FALLBACK_LOGO;
+                    }
+                  }}
                   alt="Cholamandal Cargo Connections Logo"
                   className="w-full h-full object-contain"
                 />
